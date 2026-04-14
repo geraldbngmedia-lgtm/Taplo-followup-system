@@ -38,11 +38,24 @@
 - [x] Stats page (total, groups, warmth distribution)
 - [x] Sidebar navigation
 - [x] Protected routes with auth context
+- [x] **Teamtailor Integration** (2026-04-14)
+  - Full API client (EU region: api.teamtailor.com)
+  - Connect/disconnect with API key validation
+  - Full sync: candidates, jobs, stages, job-applications, custom fields
+  - Paginated JSON:API parsing
+  - Auto-sync on dashboard load (when connected, every 1 hour)
+  - Manual sync button
+  - Import selected TT candidates into Taplo pipeline with group/reason
+  - GDPR consent filtering (only candidates with consent are importable)
+  - "Already imported" tracking to prevent duplicates
+  - Teamtailor settings page with connection status, sync results, candidate/jobs browser
+  - TT badge on imported candidate cards
+  - "Import from TT" button on Pipeline page (when connected)
 
 ## Prioritized Backlog
 ### P0 (Next)
-- Teamtailor API integration (when API key available)
-- Candidate import from Teamtailor
+- Gmail/Outlook integration for actual email sending
+- Daily digest email delivery
 
 ### P1
 - Gmail/Outlook integration for actual email sending
