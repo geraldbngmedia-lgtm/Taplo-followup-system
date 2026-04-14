@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Lightning, Users, Timer, ShieldCheck, Envelope, ChartLineUp } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import LiveDemoSection from '@/components/LiveDemoSection';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -141,6 +142,9 @@ export default function LandingPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Live Demo */}
+            <LiveDemoSection />
 
             {/* Features */}
             <section className="py-24 md:py-32 border-t border-white/5" data-testid="features-section">
