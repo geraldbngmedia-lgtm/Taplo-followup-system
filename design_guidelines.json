@@ -1,0 +1,160 @@
+{
+  "project_name": "Taplo",
+  "theme": "dark",
+  "archetype": "4",
+  "archetype_name": "Swiss & High-Contrast (Dark Mode Adapted)",
+  "fonts": {
+    "headings": "Sora",
+    "body": "DM Sans",
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700
+    },
+    "scale": {
+      "h1": "text-5xl sm:text-6xl tracking-tight leading-tight",
+      "h2": "text-3xl sm:text-4xl tracking-tight",
+      "h3": "text-xl sm:text-2xl",
+      "h4": "text-lg sm:text-xl font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm",
+      "overline": "text-xs tracking-[0.2em] uppercase font-bold"
+    }
+  },
+  "colors": {
+    "primary": {
+      "DEFAULT": "#F97B5C",
+      "hover": "#E86A4B",
+      "light": "#FCD2C8",
+      "dark": "#C95A3E"
+    },
+    "secondary": {
+      "DEFAULT": "#4E9BE8",
+      "hover": "#3D8AD7",
+      "light": "#BDE0FE",
+      "dark": "#367AC4"
+    },
+    "background": {
+      "base": "#0A0C10",
+      "surface": "#12151C",
+      "surface_hover": "#1A1E27",
+      "glass": "rgba(10, 12, 16, 0.7)"
+    },
+    "text": {
+      "primary": "#F1F3F5",
+      "secondary": "#A0AAB2",
+      "muted": "#6E7781",
+      "inverse": "#0A0C10"
+    },
+    "border": {
+      "default": "#2A2E39",
+      "subtle": "rgba(255, 255, 255, 0.05)",
+      "focus": "#4E9BE8"
+    },
+    "status": {
+      "warm": "#F97B5C",
+      "lukewarm": "#F1C40F",
+      "cold": "#4E9BE8"
+    }
+  },
+  "spacing_and_layout": {
+    "containers": "max-w-7xl mx-auto px-6 md:px-12",
+    "section_padding": "py-24 md:py-32",
+    "element_gap": {
+      "small": "gap-4",
+      "medium": "gap-8",
+      "large": "gap-16",
+      "xlarge": "gap-24"
+    },
+    "grid_modes": {
+      "landing_bento": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "dashboard_control_room": "grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4"
+    },
+    "radius": {
+      "button": "rounded-full",
+      "card": "rounded-2xl",
+      "input": "rounded-lg"
+    }
+  },
+  "surface_strategies": {
+    "cards": "bg-[#12151C] border border-white/5 shadow-sm",
+    "glass_header": "bg-[#0A0C10]/70 backdrop-blur-xl border-b border-white/10",
+    "inputs": "bg-[#0A0C10] border border-[#2A2E39] focus:border-[#4E9BE8] focus:ring-1 focus:ring-[#4E9BE8]"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#F97B5C] text-[#0A0C10] hover:bg-[#E86A4B] transition-colors font-medium",
+      "secondary": "bg-[#4E9BE8] text-[#0A0C10] hover:bg-[#3D8AD7] transition-colors font-medium",
+      "outline": "border border-[#2A2E39] text-[#F1F3F5] hover:bg-[#1A1E27] transition-colors",
+      "ghost": "text-[#A0AAB2] hover:text-[#F1F3F5] hover:bg-white/5 transition-colors"
+    },
+    "dashboard": {
+      "sidebar": "w-64 border-r border-[#2A2E39] bg-[#0A0C10] flex flex-col h-screen fixed",
+      "main_content": "ml-64 p-8 min-h-screen bg-[#0A0C10]",
+      "tabs": "Shadcn Tabs, customized with Coral active state indicator border-b-2",
+      "pipeline_card": "bg-[#12151C] p-4 rounded-xl border border-white/5 hover:-translate-y-1 hover:border-[#2A2E39] transition-all duration-200 cursor-pointer"
+    }
+  },
+  "interactions": {
+    "hover": "All interactive elements must have clear hover states (color shift or slight transform)",
+    "focus": "focus:outline-none focus:ring-2 focus:ring-[#4E9BE8]/50 focus:ring-offset-2 focus:ring-offset-[#0A0C10]",
+    "animation": "Framer motion for staggered list reveals on dashboard and fade-up on landing page sections"
+  },
+  "media": {
+    "logos": {
+      "main": {
+        "url": "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png",
+        "alt": "Taplo Logo",
+        "placement": "Navbar, Sidebar, Footer"
+      }
+    },
+    "backgrounds": {
+      "hero_glow": {
+        "url": "https://images.unsplash.com/photo-1761075665831-6dfd2464f822?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHwzfHxkYXJrJTIwYWJzdHJhY3QlMjBuZW9uJTIwY29yYWwlMjBibHVlfGVufDB8fHx8MTc3NjE5ODgzNHww&ixlib=rb-4.1.0&q=85",
+        "alt": "Abstract neon glow",
+        "placement": "Absolute positioned behind landing page hero, opacity 20%, blur-3xl, mix-blend-screen"
+      },
+      "features_abstract": {
+         "url": "https://images.unsplash.com/photo-1775057154553-0f3e8902fea3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMG5ldHdvcmtpbmclMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NzYxOTg4MzR8MA&ixlib=rb-4.1.0&q=85",
+         "alt": "Abstract networking lines",
+         "placement": "Background for How it Works or Features section"
+      }
+    },
+    "photography": {
+      "recruiter_problem": {
+        "url": "https://images.unsplash.com/photo-1758520144437-f068ecaf0d83?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjByZWNydWl0ZXIlMjBvZmZpY2V8ZW58MHx8fHwxNzc2MTk4ODI0fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Recruiter interviewing candidate",
+        "placement": "Problem section image demonstrating the hiring process"
+      },
+      "dashboard_concept": {
+        "url": "https://images.unsplash.com/photo-1586202690666-e1f32e218afe?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBkYXJrJTIwdGVjaCUyMHdvcmtzcGFjZXxlbnwwfHx8fDE3NzYxOTg4MzR8MA&ixlib=rb-4.1.0&q=85",
+        "alt": "Modern tech workspace",
+        "placement": "Features section visual or Daily Digest conceptual image"
+      }
+    }
+  },
+  "iconography": {
+    "library": "@phosphor-icons/react",
+    "weight": "duotone",
+    "instructions": "Use Phosphor icons. Duotone weight matches the dual-color brand identity."
+  },
+  "accessibility": {
+    "contrast": "Ensure #F1F3F5 text against #0A0C10 meets APCA guidelines. Do not use pure gray; use slate tinted with blue for secondary text.",
+    "testing": "All interactive elements must have data-testid attributes (e.g., data-testid='waitlist-submit-button', data-testid='add-candidate-button', data-testid='follow-up-button')."
+  },
+  "instructions_to_main_agent": [
+    "1. Setup standard React + Vite + Tailwind + Shadcn env.",
+    "2. Install required fonts: Sora (Google Fonts for headings), DM Sans (Google Fonts for body). Add `@phosphor-icons/react`.",
+    "3. Apply colors from this JSON to tailwind.config.js.",
+    "4. Build Landing Page with Waitlist form.",
+    "5. Build Dashboard layout (Sidebar + Main Content).",
+    "6. Build Dashboard Pipeline View with Tabs (Silver Medallist, Not Ready Yet, Pipeline, Offer Declined).",
+    "7. Build 'Add Candidate' form dialog with manual tag entry.",
+    "8. Implement 'Follow Up' button logic: opens a dialog/drawer simulating an AI-generated message, with a 'Send Email' button that triggers a mailto: link.",
+    "9. Include Warmth Indicators (colored dots or bars) on candidate cards.",
+    "10. Ensure GDPR consent state is visible on candidates or in the Add Candidate form.",
+    "11. Build a 'Daily Digest' view summarizing candidates needing follow-up.",
+    "12. Use the exact media URLs provided in this file. Do not use generic placeholders."
+  ]
+}
