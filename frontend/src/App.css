@@ -1,34 +1,85 @@
-.App-logo {
-    height: 40vmin;
+/* Taplo Custom Styles */
+
+.glass-header {
+    background: rgba(10, 12, 16, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+    background: rgba(18, 21, 28, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glow-coral {
+    box-shadow: 0 0 40px rgba(249, 123, 92, 0.15);
+}
+
+.glow-ocean {
+    box-shadow: 0 0 40px rgba(78, 155, 232, 0.15);
+}
+
+.warmth-hot {
+    background: #F97B5C;
+    box-shadow: 0 0 12px rgba(249, 123, 92, 0.6);
+}
+
+.warmth-warm {
+    background: #F1C40F;
+    box-shadow: 0 0 12px rgba(241, 196, 15, 0.5);
+}
+
+.warmth-cool {
+    background: #4E9BE8;
+    box-shadow: 0 0 8px rgba(78, 155, 232, 0.4);
+}
+
+.warmth-cold {
+    background: #6E7781;
+    box-shadow: 0 0 4px rgba(110, 119, 129, 0.3);
+}
+
+.pipeline-card {
+    transition: all 0.2s ease;
+}
+
+.pipeline-card:hover {
+    transform: translateY(-2px);
+    border-color: #2A2E39;
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+/* Hero gradient blobs */
+.hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
     pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.hero-glow-coral {
+    background: #F97B5C;
+    top: -200px;
+    right: -100px;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.hero-glow-blue {
+    background: #4E9BE8;
+    bottom: -200px;
+    left: -100px;
 }
