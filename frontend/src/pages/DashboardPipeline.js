@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, MagnifyingGlass, Funnel, PlugsConnected } from '@phosphor-icons/react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Plus, MagnifyingGlass, Funnel, PlugsConnected, X } from '@phosphor-icons/react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import CandidateCard from '@/components/CandidateCard';
 import AddCandidateDialog from '@/components/AddCandidateDialog';
@@ -28,6 +29,8 @@ export default function DashboardPipeline() {
     const [addOpen, setAddOpen] = useState(false);
     const [followUpCandidate, setFollowUpCandidate] = useState(null);
     const [ttStatus, setTtStatus] = useState(null);
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [warmthFilter, setWarmthFilter] = useState('all');
 
     const fetchCandidates = useCallback(async () => {
         try {
@@ -76,11 +79,29 @@ export default function DashboardPipeline() {
         fetchCandidates();
     };
 
-    const filtered = candidates.filter(c =>
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.role.toLowerCase().includes(search.toLowerCase()) ||
-        c.email.toLowerCase().includes(search.toLowerCase())
-    );
+    // Extract unique roles for the filter dropdown
+    const uniqueRoles = useMemo(() => {
+        const roles = [...new Set(candidates.map(c => c.role))].sort();
+        return roles;
+    }, [candidates]);
+
+    const hasActiveFilters = roleFilter !== 'all' || warmthFilter !== 'all' || search.length > 0;
+
+    const filtered = candidates.filter(c => {
+        const matchesSearch = !search ||
+            c.name.toLowerCase().includes(search.toLowerCase()) ||
+            c.role.toLowerCase().includes(search.toLowerCase()) ||
+            c.email.toLowerCase().includes(search.toLowerCase());
+        const matchesRole = roleFilter === 'all' || c.role === roleFilter;
+        const matchesWarmth = warmthFilter === 'all' || c.warmth === warmthFilter;
+        return matchesSearch && matchesRole && matchesWarmth;
+    });
+
+    const clearFilters = () => {
+        setSearch('');
+        setRoleFilter('all');
+        setWarmthFilter('all');
+    };
 
     const groupCounts = candidates.reduce((acc, c) => {
         acc[c.group] = (acc[c.group] || 0) + 1;
@@ -110,17 +131,83 @@ export default function DashboardPipeline() {
                 </div>
             </div>
 
-            {/* Search */}
-            <div className="relative mb-6">
-                <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6E7781] w-4 h-4" />
-                <Input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by name, role, or email..."
-                    className="pl-11 h-11 bg-surface-card border-[#2A2E39] text-[#F1F3F5] placeholder:text-[#6E7781] rounded-xl focus:border-ocean"
-                    data-testid="pipeline-search-input"
-                />
+            {/* Search & Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="relative flex-1">
+                    <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6E7781] w-4 h-4" />
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by name, role, or email..."
+                        className="pl-11 h-11 bg-surface-card border-[#2A2E39] text-[#F1F3F5] placeholder:text-[#6E7781] rounded-xl focus:border-ocean"
+                        data-testid="pipeline-search-input"
+                    />
+                </div>
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="h-11 w-full sm:w-52 bg-surface-card border-[#2A2E39] text-[#F1F3F5] rounded-xl focus:border-ocean" data-testid="pipeline-role-filter">
+                        <Funnel className="w-4 h-4 mr-2 text-[#6E7781] shrink-0" />
+                        <SelectValue placeholder="All Roles" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5] max-h-60">
+                        <SelectItem value="all" className="focus:bg-white/5 focus:text-[#F1F3F5]">All Roles</SelectItem>
+                        {uniqueRoles.map((r) => (
+                            <SelectItem key={r} value={r} className="focus:bg-white/5 focus:text-[#F1F3F5]">{r}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={warmthFilter} onValueChange={setWarmthFilter}>
+                    <SelectTrigger className="h-11 w-full sm:w-44 bg-surface-card border-[#2A2E39] text-[#F1F3F5] rounded-xl focus:border-ocean" data-testid="pipeline-warmth-filter">
+                        <SelectValue placeholder="All Warmth" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5]">
+                        <SelectItem value="all" className="focus:bg-white/5 focus:text-[#F1F3F5]">All Warmth</SelectItem>
+                        <SelectItem value="hot" className="focus:bg-white/5 focus:text-[#F1F3F5]">
+                            <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-coral" />Hot</span>
+                        </SelectItem>
+                        <SelectItem value="warm" className="focus:bg-white/5 focus:text-[#F1F3F5]">
+                            <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-yellow-400" />Warm</span>
+                        </SelectItem>
+                        <SelectItem value="cool" className="focus:bg-white/5 focus:text-[#F1F3F5]">
+                            <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-ocean" />Cool</span>
+                        </SelectItem>
+                        <SelectItem value="cold" className="focus:bg-white/5 focus:text-[#F1F3F5]">
+                            <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#6E7781]" />Cold</span>
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+                {hasActiveFilters && (
+                    <Button
+                        onClick={clearFilters}
+                        variant="ghost"
+                        className="h-11 text-[#6E7781] hover:text-[#F1F3F5] hover:bg-white/5 rounded-xl px-3 shrink-0"
+                        data-testid="pipeline-clear-filters"
+                    >
+                        <X className="w-4 h-4 mr-1" /> Clear
+                    </Button>
+                )}
             </div>
+
+            {/* Active filter badges */}
+            {hasActiveFilters && (
+                <div className="flex items-center gap-2 mb-4 flex-wrap" data-testid="pipeline-active-filters">
+                    <span className="text-[#6E7781] text-xs">Showing {filtered.length} of {candidates.length}:</span>
+                    {search && (
+                        <Badge className="bg-white/5 text-[#A0AAB2] border-[#2A2E39] rounded-full text-xs cursor-pointer hover:bg-white/10" onClick={() => setSearch('')}>
+                            Search: "{search}" <X className="w-3 h-3 ml-1" />
+                        </Badge>
+                    )}
+                    {roleFilter !== 'all' && (
+                        <Badge className="bg-ocean/10 text-ocean border-ocean/20 rounded-full text-xs cursor-pointer hover:bg-ocean/20" onClick={() => setRoleFilter('all')} data-testid="pipeline-role-filter-badge">
+                            Role: {roleFilter} <X className="w-3 h-3 ml-1" />
+                        </Badge>
+                    )}
+                    {warmthFilter !== 'all' && (
+                        <Badge className="bg-coral/10 text-coral border-coral/20 rounded-full text-xs cursor-pointer hover:bg-coral/20" onClick={() => setWarmthFilter('all')} data-testid="pipeline-warmth-filter-badge">
+                            Warmth: {warmthFilter} <X className="w-3 h-3 ml-1" />
+                        </Badge>
+                    )}
+                </div>
+            )}
 
             {/* Tabs */}
             <Tabs value={tab} onValueChange={setTab} className="w-full">
