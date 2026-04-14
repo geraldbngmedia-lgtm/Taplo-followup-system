@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, CalendarDots, ChartBar, SignOut, House } from '@phosphor-icons/react';
+import { Users, CalendarDots, ChartBar, SignOut, House, PlugsConnected } from '@phosphor-icons/react';
 
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
 
@@ -8,6 +8,7 @@ const navItems = [
     { path: '/dashboard', label: 'Pipeline', icon: Users },
     { path: '/dashboard/digest', label: 'Daily Digest', icon: CalendarDots },
     { path: '/dashboard/stats', label: 'Stats', icon: ChartBar },
+    { path: '/dashboard/teamtailor', label: 'Teamtailor', icon: PlugsConnected },
 ];
 
 export default function Sidebar() {

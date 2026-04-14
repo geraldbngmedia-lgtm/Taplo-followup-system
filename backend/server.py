@@ -18,6 +18,7 @@ from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from teamtailor_service import TeamtailorClient, full_sync, map_tt_candidate_to_taplo
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -110,6 +111,14 @@ class CandidateUpdate(BaseModel):
 class FollowUpRequest(BaseModel):
     candidate_id: str
     custom_context: Optional[str] = ""
+
+class TeamtailorConnectInput(BaseModel):
+    api_key: str
+
+class TeamtailorImportInput(BaseModel):
+    candidate_tt_ids: List[str]
+    group: str
+    reason: Optional[str] = ""
 
 # ========================
 # Auth Endpoints
@@ -437,6 +446,182 @@ async def dashboard_stats(request: Request):
         w = calc_warmth(c.get("last_contact_date"))
         warmth[w] = warmth.get(w, 0) + 1
     return {"total": len(candidates), "groups": groups, "warmth": warmth}
+
+# ========================
+# Teamtailor Integration
+# ========================
+
+@api_router.post("/teamtailor/connect")
+async def tt_connect(data: TeamtailorConnectInput, request: Request):
+    """Save Teamtailor API key and test connection."""
+    user = await get_current_user(request)
+    tt = TeamtailorClient(data.api_key)
+    result = await tt.test_connection()
+    if not result.get("connected"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to connect"))
+    await db.tt_settings.update_one(
+        {"user_id": user["_id"]},
+        {"$set": {
+            "user_id": user["_id"],
+            "api_key": data.api_key,
+            "company_name": result.get("company_name"),
+            "company_id": result.get("company_id"),
+            "connected": True,
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    return {"connected": True, "company_name": result.get("company_name")}
+
+@api_router.get("/teamtailor/status")
+async def tt_status(request: Request):
+    """Check Teamtailor connection status."""
+    user = await get_current_user(request)
+    settings = await db.tt_settings.find_one({"user_id": user["_id"]}, {"_id": 0, "api_key": 0})
+    if not settings:
+        return {"connected": False, "has_key": False}
+    return {
+        "connected": settings.get("connected", False),
+        "has_key": True,
+        "company_name": settings.get("company_name"),
+        "last_sync": settings.get("last_sync"),
+        "last_sync_results": settings.get("last_sync_results"),
+    }
+
+@api_router.delete("/teamtailor/disconnect")
+async def tt_disconnect(request: Request):
+    """Remove Teamtailor connection."""
+    user = await get_current_user(request)
+    await db.tt_settings.delete_one({"user_id": user["_id"]})
+    # Clean up synced data
+    for col in ["tt_jobs", "tt_stages", "tt_candidates", "tt_applications", "tt_custom_fields"]:
+        await db[col].delete_many({"synced_by": user["_id"]})
+    return {"message": "Teamtailor disconnected"}
+
+@api_router.post("/teamtailor/sync")
+async def tt_sync(request: Request):
+    """Trigger a full sync from Teamtailor."""
+    user = await get_current_user(request)
+    settings = await db.tt_settings.find_one({"user_id": user["_id"]})
+    if not settings or not settings.get("api_key"):
+        raise HTTPException(status_code=400, detail="Teamtailor not connected. Please add your API key first.")
+    results = await full_sync(db, user["_id"], settings["api_key"])
+    return {"message": "Sync complete", "results": results}
+
+@api_router.get("/teamtailor/jobs")
+async def tt_jobs(request: Request):
+    """List synced Teamtailor jobs."""
+    user = await get_current_user(request)
+    jobs = await db.tt_jobs.find({"synced_by": user["_id"]}, {"_id": 0}).sort("updated_at", -1).to_list(500)
+    return jobs
+
+@api_router.get("/teamtailor/candidates")
+async def tt_candidates_list(request: Request):
+    """List synced Teamtailor candidates (not yet imported into Taplo)."""
+    user = await get_current_user(request)
+    # Get already-imported TT IDs
+    imported = await db.candidates.find(
+        {"created_by": user["_id"], "tt_id": {"$exists": True}},
+        {"tt_id": 1, "_id": 0}
+    ).to_list(5000)
+    imported_ids = {c["tt_id"] for c in imported}
+
+    tt_cands = await db.tt_candidates.find({"synced_by": user["_id"]}, {"_id": 0}).to_list(500)
+
+    # Enrich with latest application info
+    for c in tt_cands:
+        c["already_imported"] = c.get("tt_id") in imported_ids
+        # Find applications for this candidate
+        apps = await db.tt_applications.find(
+            {"synced_by": user["_id"], "candidate_tt_id": c.get("tt_id")},
+            {"_id": 0}
+        ).to_list(50)
+        if apps:
+            sorted_apps = sorted(apps, key=lambda a: a.get("updated_at", ""), reverse=True)
+            latest = sorted_apps[0]
+            job = await db.tt_jobs.find_one({"synced_by": user["_id"], "tt_id": latest.get("job_tt_id")}, {"_id": 0})
+            c["latest_role"] = job.get("title", "Unknown") if job else "Unknown"
+            c["latest_stage"] = latest.get("stage_name", "")
+            c["application_count"] = len(apps)
+        else:
+            c["latest_role"] = "No applications"
+            c["latest_stage"] = ""
+            c["application_count"] = 0
+        # GDPR
+        c["has_consent"] = bool(c.get("consent_future_jobs_at")) and not c.get("unsubscribed", False)
+        c["full_name"] = f"{c.get('first_name', '')} {c.get('last_name', '')}".strip()
+    return tt_cands
+
+@api_router.post("/teamtailor/import")
+async def tt_import(data: TeamtailorImportInput, request: Request):
+    """Import selected Teamtailor candidates into Taplo pipeline."""
+    user = await get_current_user(request)
+    if not data.candidate_tt_ids:
+        raise HTTPException(status_code=400, detail="No candidates selected")
+
+    # Build jobs lookup
+    jobs_raw = await db.tt_jobs.find({"synced_by": user["_id"]}, {"_id": 0}).to_list(500)
+    tt_jobs_map = {j["tt_id"]: j for j in jobs_raw}
+
+    imported = []
+    skipped = []
+    for tt_id in data.candidate_tt_ids:
+        # Check if already imported
+        existing = await db.candidates.find_one({"created_by": user["_id"], "tt_id": tt_id})
+        if existing:
+            skipped.append(tt_id)
+            continue
+
+        tt_cand = await db.tt_candidates.find_one({"synced_by": user["_id"], "tt_id": tt_id}, {"_id": 0})
+        if not tt_cand:
+            skipped.append(tt_id)
+            continue
+
+        # Get applications for this candidate
+        apps = await db.tt_applications.find(
+            {"synced_by": user["_id"], "candidate_tt_id": tt_id}, {"_id": 0}
+        ).to_list(50)
+
+        doc = map_tt_candidate_to_taplo(tt_cand, apps, tt_jobs_map, data.group, data.reason or "")
+        doc["created_by"] = user["_id"]
+        doc["created_at"] = datetime.now(timezone.utc).isoformat()
+
+        result = await db.candidates.insert_one(doc)
+        doc["_id"] = result.inserted_id
+        imported.append(serialize_candidate(doc))
+
+    return {
+        "imported": len(imported),
+        "skipped": len(skipped),
+        "candidates": imported,
+    }
+
+@api_router.get("/teamtailor/sync-status")
+async def tt_auto_sync(request: Request):
+    """Auto-sync check — returns status and triggers background sync if stale."""
+    user = await get_current_user(request)
+    settings = await db.tt_settings.find_one({"user_id": user["_id"]})
+    if not settings or not settings.get("api_key"):
+        return {"connected": False, "should_sync": False}
+
+    last_sync = settings.get("last_sync")
+    should_sync = True
+    if last_sync:
+        try:
+            last = datetime.fromisoformat(last_sync.replace("Z", "+00:00"))
+            if last.tzinfo is None:
+                last = last.replace(tzinfo=timezone.utc)
+            hours_since = (datetime.now(timezone.utc) - last).total_seconds() / 3600
+            should_sync = hours_since > 1  # Re-sync if older than 1 hour
+        except Exception:
+            pass
+
+    return {
+        "connected": True,
+        "should_sync": should_sync,
+        "last_sync": last_sync,
+        "company_name": settings.get("company_name"),
+    }
 
 # ========================
 # Root

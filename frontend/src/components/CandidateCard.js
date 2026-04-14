@@ -2,7 +2,7 @@ import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { WarmthDot, WarmthBadge } from '@/components/WarmthIndicator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PaperPlaneTilt, Trash, CalendarDot, Briefcase } from '@phosphor-icons/react';
+import { PaperPlaneTilt, Trash, CalendarDot, Briefcase, PlugsConnected } from '@phosphor-icons/react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DotsThreeVertical } from '@phosphor-icons/react';
 
@@ -92,6 +92,11 @@ export default function CandidateCard({ candidate, index, onFollowUp, onDelete }
                     {groupLabels[c.group] || c.group}
                 </Badge>
                 <WarmthBadge warmth={c.warmth} />
+                {c.source === 'teamtailor' && (
+                    <Badge className="text-xs border rounded-full px-2 py-0.5 bg-ocean/10 text-ocean border-ocean/20" data-testid={`candidate-tt-badge-${c.id}`}>
+                        <PlugsConnected className="w-3 h-3 mr-1" /> TT
+                    </Badge>
+                )}
             </div>
 
             {/* Next follow-up */}

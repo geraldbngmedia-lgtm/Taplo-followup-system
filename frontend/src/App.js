@@ -7,6 +7,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import DashboardPipeline from "@/pages/DashboardPipeline";
 import DigestPage from "@/pages/DigestPage";
 import StatsPage from "@/pages/StatsPage";
+import TeamtailorPage from "@/pages/TeamtailorPage";
 import Sidebar from "@/components/Sidebar";
 
 function ProtectedRoute() {
@@ -61,6 +62,7 @@ function App() {
                         <Route path="/dashboard" element={<DashboardPipeline />} />
                         <Route path="/dashboard/digest" element={<DigestPage />} />
                         <Route path="/dashboard/stats" element={<StatsPage />} />
+                        <Route path="/dashboard/teamtailor" element={<TeamtailorPage />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

@@ -236,6 +236,111 @@ class TaploAPITester:
         )
         return success
 
+    # ========================
+    # Teamtailor Integration Tests
+    # ========================
+
+    def test_teamtailor_status_no_key(self):
+        """Test Teamtailor status when no API key is configured"""
+        success, response = self.run_test(
+            "Teamtailor Status (No Key)",
+            "GET",
+            "teamtailor/status",
+            200
+        )
+        if success:
+            # Should return connected: false, has_key: false
+            expected_keys = ['connected', 'has_key']
+            if all(key in response for key in expected_keys):
+                if response['connected'] == False and response['has_key'] == False:
+                    print("   ✅ Correct response format for no key")
+                    return True
+                else:
+                    print(f"   ❌ Unexpected values: connected={response.get('connected')}, has_key={response.get('has_key')}")
+                    return False
+            else:
+                print(f"   ❌ Missing expected keys in response")
+                return False
+        return success
+
+    def test_teamtailor_sync_status_no_key(self):
+        """Test Teamtailor sync status when no API key is configured"""
+        success, response = self.run_test(
+            "Teamtailor Sync Status (No Key)",
+            "GET",
+            "teamtailor/sync-status",
+            200
+        )
+        if success:
+            # Should return connected: false, should_sync: false
+            expected_keys = ['connected', 'should_sync']
+            if all(key in response for key in expected_keys):
+                if response['connected'] == False and response['should_sync'] == False:
+                    print("   ✅ Correct response format for no key")
+                    return True
+                else:
+                    print(f"   ❌ Unexpected values: connected={response.get('connected')}, should_sync={response.get('should_sync')}")
+                    return False
+            else:
+                print(f"   ❌ Missing expected keys in response")
+                return False
+        return success
+
+    def test_teamtailor_connect_invalid_key(self):
+        """Test Teamtailor connect with invalid API key"""
+        success, response = self.run_test(
+            "Teamtailor Connect (Invalid Key)",
+            "POST",
+            "teamtailor/connect",
+            400,
+            data={"api_key": "invalid_key_12345"}
+        )
+        if success:
+            # Should return 400 with error message about invalid API key
+            if 'detail' in response and 'Invalid API key' in response['detail']:
+                print("   ✅ Correct error message for invalid key")
+                return True
+            else:
+                print(f"   ❌ Unexpected error message: {response.get('detail')}")
+                return False
+        return success
+
+    def test_teamtailor_sync_no_key(self):
+        """Test Teamtailor sync without API key configured"""
+        success, response = self.run_test(
+            "Teamtailor Sync (No Key)",
+            "POST",
+            "teamtailor/sync",
+            400
+        )
+        if success:
+            # Should return 400 error
+            if 'detail' in response and 'not connected' in response['detail'].lower():
+                print("   ✅ Correct error message for sync without key")
+                return True
+            else:
+                print(f"   ❌ Unexpected error message: {response.get('detail')}")
+                return False
+        return success
+
+    def test_teamtailor_disconnect(self):
+        """Test Teamtailor disconnect (should work even when not connected)"""
+        success, response = self.run_test(
+            "Teamtailor Disconnect",
+            "DELETE",
+            "teamtailor/disconnect",
+            200
+        )
+        if success:
+            # Should return success message
+            if 'message' in response and 'disconnected' in response['message'].lower():
+                print("   ✅ Disconnect works even when not connected")
+                return True
+            else:
+                print(f"   ❌ Unexpected response: {response}")
+                return False
+        return success
+
 def main():
     print("🚀 Starting Taplo API Tests")
     print("=" * 50)
@@ -256,6 +361,12 @@ def main():
         ("Daily Digest", tester.test_digest),
         ("Dashboard Stats", tester.test_stats),
         ("Delete Candidate", tester.test_delete_candidate),
+        # Teamtailor Integration Tests
+        ("TT Status (No Key)", tester.test_teamtailor_status_no_key),
+        ("TT Sync Status (No Key)", tester.test_teamtailor_sync_status_no_key),
+        ("TT Connect (Invalid Key)", tester.test_teamtailor_connect_invalid_key),
+        ("TT Sync (No Key)", tester.test_teamtailor_sync_no_key),
+        ("TT Disconnect", tester.test_teamtailor_disconnect),
         ("Logout", tester.test_logout),
     ]
     

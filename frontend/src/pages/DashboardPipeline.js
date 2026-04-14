@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, MagnifyingGlass, Funnel } from '@phosphor-icons/react';
+import { Plus, MagnifyingGlass, Funnel, PlugsConnected } from '@phosphor-icons/react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 import CandidateCard from '@/components/CandidateCard';
 import AddCandidateDialog from '@/components/AddCandidateDialog';
 import FollowUpDialog from '@/components/FollowUpDialog';
@@ -25,6 +27,7 @@ export default function DashboardPipeline() {
     const [search, setSearch] = useState('');
     const [addOpen, setAddOpen] = useState(false);
     const [followUpCandidate, setFollowUpCandidate] = useState(null);
+    const [ttStatus, setTtStatus] = useState(null);
 
     const fetchCandidates = useCallback(async () => {
         try {
@@ -38,6 +41,23 @@ export default function DashboardPipeline() {
     }, [tab]);
 
     useEffect(() => { fetchCandidates(); }, [fetchCandidates]);
+
+    // Check Teamtailor connection & auto-sync
+    useEffect(() => {
+        const checkTt = async () => {
+            try {
+                const { data } = await axios.get(`${API}/teamtailor/sync-status`, { withCredentials: true });
+                setTtStatus(data);
+                if (data.connected && data.should_sync) {
+                    // Trigger background sync
+                    axios.post(`${API}/teamtailor/sync`, {}, { withCredentials: true }).then(() => {
+                        fetchCandidates();
+                    }).catch(() => {});
+                }
+            } catch { /* ignore */ }
+        };
+        checkTt();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleCandidateAdded = (newCandidate) => {
         setCandidates(prev => [newCandidate, ...prev]);
@@ -76,9 +96,18 @@ export default function DashboardPipeline() {
                     <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[#F1F3F5]">Candidate Pipeline</h1>
                     <p className="text-[#6E7781] text-sm mt-1">{candidates.length} candidate{candidates.length !== 1 ? 's' : ''} being nurtured</p>
                 </div>
-                <Button onClick={() => setAddOpen(true)} className="bg-coral hover:bg-coral-hover text-surface-base rounded-full px-6 font-medium" data-testid="add-candidate-button">
-                    <Plus className="w-4 h-4 mr-2" /> Add Candidate
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button onClick={() => setAddOpen(true)} className="bg-coral hover:bg-coral-hover text-surface-base rounded-full px-6 font-medium" data-testid="add-candidate-button">
+                        <Plus className="w-4 h-4 mr-2" /> Add Candidate
+                    </Button>
+                    {ttStatus?.connected && (
+                        <Link to="/dashboard/teamtailor">
+                            <Button variant="outline" className="border-ocean/30 text-ocean hover:bg-ocean/5 rounded-full font-medium" data-testid="import-teamtailor-button">
+                                <PlugsConnected className="w-4 h-4 mr-2" /> Import from TT
+                            </Button>
+                        </Link>
+                    )}
+                </div>
             </div>
 
             {/* Search */}
