@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, MagnifyingGlass, Funnel, X } from '@phosphor-icons/react';
+import { Plus, MagnifyingGlass, Funnel, X, PuzzlePiece, Lightning, Briefcase } from '@phosphor-icons/react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Link } from 'react-router-dom';
 import CandidateCard from '@/components/CandidateCard';
 import AddCandidateDialog from '@/components/AddCandidateDialog';
 import FollowUpDialog from '@/components/FollowUpDialog';
@@ -209,14 +210,51 @@ export default function DashboardPipeline() {
                             <div className="flex items-center justify-center py-20">
                                 <div className="w-8 h-8 border-2 border-coral border-t-transparent rounded-full animate-spin" />
                             </div>
+                        ) : filtered.length === 0 && candidates.length === 0 ? (
+                            <div className="py-8" data-testid="pipeline-onboarding">
+                                <div className="text-center mb-8">
+                                    <h2 className="font-heading text-xl font-bold text-[#F1F3F5] mb-2">Welcome to Taplo</h2>
+                                    <p className="text-[#6E7781] text-sm">Get started in 3 easy steps</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                    {[
+                                        {
+                                            num: '1',
+                                            icon: PuzzlePiece,
+                                            title: 'Install the Chrome Extension',
+                                            desc: 'Go to the Extension page to get your API key and set up the Taplo Chrome extension.',
+                                            action: <Link to="/dashboard/extension"><Button variant="outline" className="mt-3 border-ocean/30 text-ocean hover:bg-ocean/5 rounded-full text-xs" data-testid="onboarding-extension-btn"><PuzzlePiece className="w-3.5 h-3.5 mr-1.5" /> Set Up Extension</Button></Link>
+                                        },
+                                        {
+                                            num: '2',
+                                            icon: Briefcase,
+                                            title: 'Add Your First Candidate',
+                                            desc: 'Push a candidate from Teamtailor or LinkedIn using the extension, or add one manually.',
+                                            action: <Button onClick={() => setAddOpen(true)} className="mt-3 bg-coral hover:bg-coral-hover text-surface-base rounded-full text-xs" data-testid="onboarding-add-btn"><Plus className="w-3.5 h-3.5 mr-1.5" /> Add Manually</Button>
+                                        },
+                                        {
+                                            num: '3',
+                                            icon: Lightning,
+                                            title: 'Follow Up with AI',
+                                            desc: 'Click "Follow Up" on any candidate to generate a personalised AI message and send it.',
+                                            action: null
+                                        },
+                                    ].map((step) => (
+                                        <div key={step.num} className="bg-surface-card border border-white/5 rounded-2xl p-6 text-center">
+                                            <span className="text-3xl font-heading font-bold text-white/10 block mb-3">{step.num}</span>
+                                            <step.icon weight="duotone" className="w-7 h-7 text-coral mx-auto mb-3" />
+                                            <h3 className="font-heading text-sm font-semibold text-[#F1F3F5] mb-2">{step.title}</h3>
+                                            <p className="text-[#6E7781] text-xs leading-relaxed">{step.desc}</p>
+                                            {step.action}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         ) : filtered.length === 0 ? (
                             <div className="text-center py-20" data-testid="pipeline-empty">
                                 <Funnel weight="duotone" className="w-12 h-12 text-[#2A2E39] mx-auto mb-4" />
-                                <p className="text-[#6E7781] text-lg font-heading">No candidates yet</p>
-                                <p className="text-[#6E7781] text-sm mt-1">Add your first candidate to start nurturing</p>
-                                <Button onClick={() => setAddOpen(true)} className="mt-4 bg-coral hover:bg-coral-hover text-surface-base rounded-full px-6 font-medium" data-testid="empty-add-candidate-button">
-                                    <Plus className="w-4 h-4 mr-2" /> Add Candidate
-                                </Button>
+                                <p className="text-[#6E7781] text-lg font-heading">No matching candidates</p>
+                                <p className="text-[#6E7781] text-sm mt-1">Try adjusting your filters or search</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
