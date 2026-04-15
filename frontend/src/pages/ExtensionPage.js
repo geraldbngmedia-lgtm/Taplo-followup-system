@@ -34,7 +34,19 @@ export default function ExtensionPage() {
     useEffect(() => { fetchKey(); fetchRecent(); }, [fetchKey, fetchRecent]);
 
     const handleCopy = async () => {
-        await navigator.clipboard.writeText(extKey);
+        try {
+            await navigator.clipboard.writeText(extKey);
+        } catch {
+            // Fallback for environments where clipboard API is blocked
+            const ta = document.createElement('textarea');
+            ta.value = extKey;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
