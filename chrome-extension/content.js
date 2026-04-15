@@ -63,13 +63,18 @@
     return "";
   }
 
+  function cleanName(raw) {
+    // Strip leading "(number) " pattern from titles like "(49) Lea Anton"
+    return raw.replace(/^\(\d+\)\s*/, "").trim();
+  }
+
   function findName() {
     // Strategy 1: Document title — most reliable on Teamtailor
     // Title is usually "Lea Anton - Company - Teamtailor" or "Lea Anton | Teamtailor"
     const title = document.title || "";
     if (title) {
       const parts = title.split(/[|\-–—·]/);
-      const firstPart = parts[0].trim();
+      const firstPart = cleanName(parts[0].trim());
       if (
         firstPart.length >= 3 &&
         firstPart.length < 50 &&
@@ -84,7 +89,7 @@
     // Strategy 2: h1 elements — look for a proper person name
     const headings = document.querySelectorAll("h1");
     for (const h of headings) {
-      const text = h.textContent.trim();
+      const text = cleanName(h.textContent.trim());
       if (!text || text.length < 3 || text.length > 50) continue;
       if (isStageName(text)) continue;
 
@@ -99,7 +104,7 @@
     // Strategy 3: Any h1/h2 with a name-like pattern
     const allHeadings = document.querySelectorAll("h1, h2");
     for (const h of allHeadings) {
-      const text = h.textContent.trim();
+      const text = cleanName(h.textContent.trim());
       if (!text || text.length < 3 || text.length > 50) continue;
       if (isStageName(text)) continue;
       if (text.includes(" ") && /^[A-ZÅÄÖÜ]/.test(text)) {

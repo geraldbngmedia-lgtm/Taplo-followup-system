@@ -4,7 +4,7 @@
   "description": "Push candidates from Teamtailor into your Taplo pipeline with one click.",
   "version": "1.0.0",
   "permissions": ["activeTab", "storage"],
-  "host_permissions": ["https://*.teamtailor.com/*"],
+  "host_permissions": ["https://*.teamtailor.com/*", "https://*/*"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
