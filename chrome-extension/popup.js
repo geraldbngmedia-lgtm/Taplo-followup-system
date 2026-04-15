@@ -104,8 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const tab = tabs[0];
         currentTabUrl = tab ? tab.url : "";
         const isTeamtailor = currentTabUrl.includes("teamtailor.com");
+        const isLinkedIn = currentTabUrl.includes("linkedin.com");
+        const isSupported = isTeamtailor || isLinkedIn;
 
-        if (!isTeamtailor) {
+        if (!isSupported) {
           notOnTT.classList.remove("hidden");
           candidateForm.classList.add("hidden");
           return;
@@ -113,6 +115,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         notOnTT.classList.add("hidden");
         candidateForm.classList.remove("hidden");
+
+        // Update badge text based on platform
+        var badgeText = document.getElementById("badgeText");
+        if (badgeText) {
+          badgeText.textContent = isLinkedIn ? "Captured from LinkedIn" : "Captured from Teamtailor";
+        }
 
         chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (response) => {
           if (chrome.runtime.lastError) {

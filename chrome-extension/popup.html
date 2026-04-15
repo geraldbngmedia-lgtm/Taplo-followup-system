@@ -52,20 +52,20 @@
         <p class="empty-desc">Click the gear icon to add your Taplo URL and extension key.</p>
       </div>
 
-      <!-- Not on Teamtailor state -->
+      <!-- Not on supported site state -->
       <div id="notOnTT" class="empty-state hidden">
         <div class="empty-icon">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6E7781" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
         </div>
-        <p class="empty-title">Navigate to Teamtailor</p>
-        <p class="empty-desc">Open a candidate profile in Teamtailor, then click Taplo to capture their details.</p>
+        <p class="empty-title">Navigate to a candidate</p>
+        <p class="empty-desc">Open a candidate profile on <strong>Teamtailor</strong> or <strong>LinkedIn</strong>, then click Taplo to capture their details.</p>
       </div>
 
       <!-- Candidate Form -->
       <div id="candidateForm" class="hidden">
-        <div class="scraped-badge">
+        <div class="scraped-badge" id="scrapedBadge">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E9BE8" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Captured from Teamtailor</span>
+          <span id="badgeText">Captured from Teamtailor</span>
         </div>
 
         <div class="field">
