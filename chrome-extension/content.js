@@ -1,77 +1,114 @@
 /**
  * Taplo Content Script — runs on Teamtailor pages.
- * Attempts to scrape candidate data from the DOM using multiple strategies.
- * Sends data to the popup when requested.
+ * Scrapes candidate data from Swedish & English Teamtailor profiles.
  */
 
 (function () {
   "use strict";
 
-  function getTextContent(el) {
-    return el ? el.textContent.trim() : "";
-  }
+  // Multi-language label mappings
+  const EMAIL_LABELS = ["e-post", "email", "e-mail", "mail"];
+  const PHONE_LABELS = ["telefon", "phone", "mobile", "mobil", "tel"];
+  const LOCATION_LABELS = ["plats", "location", "ort", "stad", "city"];
+  const TAGS_LABELS = ["taggar", "tags", "etiketter"];
+  const LINKEDIN_LABELS = ["linkedin"];
+  const SALARY_LABELS = ["lön", "salary", "loneförväntning"];
+  const STAGE_LABELS = ["stage", "steg", "status", "fas"];
+  const EMPTY_VALUES = ["tomt", "empty", "—", "-", ""];
 
-  function queryText(selectors) {
-    for (const sel of selectors) {
-      try {
-        const el = document.querySelector(sel);
-        if (el && el.textContent.trim()) return el.textContent.trim();
-      } catch (e) { /* ignore invalid selectors */ }
-    }
-    return "";
-  }
+  /**
+   * Find a value by scanning rows of label-value pairs.
+   * Teamtailor uses rows where the label and value are siblings or in table-like layouts.
+   */
+  function findByLabels(labelTexts) {
+    // Strategy 1: Look for all text nodes and find label-value pairs
+    const allElements = document.querySelectorAll("span, div, td, dd, p, label, dt, li, a");
 
-  function findByLabel(labelText) {
-    const labels = document.querySelectorAll("label, dt, th, span, div");
-    for (const label of labels) {
-      if (label.textContent.trim().toLowerCase().includes(labelText.toLowerCase())) {
-        // Try next sibling, parent's next sibling, adjacent dd/td
-        const next = label.nextElementSibling;
-        if (next) {
-          const text = next.textContent.trim();
-          if (text && text.length < 200) return text;
+    for (const el of allElements) {
+      const text = el.textContent.trim().toLowerCase();
+      // Check if this element's text matches one of our labels
+      const isLabel = labelTexts.some((l) => text === l || text === l + ":");
+
+      if (!isLabel) continue;
+
+      // Found a label — now find the adjacent value
+      // Strategy 1a: Next sibling element
+      let value = getAdjacentValue(el);
+      if (value) return value;
+
+      // Strategy 1b: Parent's other children
+      const parent = el.parentElement;
+      if (parent) {
+        const children = Array.from(parent.children);
+        const idx = children.indexOf(el);
+        for (let i = idx + 1; i < children.length; i++) {
+          const val = children[i].textContent.trim();
+          if (val && !isEmptyValue(val) && val.length < 200) return val;
         }
-        // Try parent's next child
-        const parent = label.parentElement;
-        if (parent) {
-          const children = parent.querySelectorAll("a, span, div, p, dd, td");
-          for (const child of children) {
-            if (child !== label && child.textContent.trim()) {
-              return child.textContent.trim();
-            }
+
+        // Strategy 1c: Parent's next sibling
+        const parentNext = parent.nextElementSibling;
+        if (parentNext) {
+          const val = parentNext.textContent.trim();
+          if (val && !isEmptyValue(val) && val.length < 200) return val;
+        }
+
+        // Strategy 1d: Grandparent's children (for row-based layouts)
+        const grandparent = parent.parentElement;
+        if (grandparent) {
+          const gpChildren = Array.from(grandparent.children);
+          const pIdx = gpChildren.indexOf(parent);
+          for (let i = pIdx + 1; i < gpChildren.length; i++) {
+            const val = gpChildren[i].textContent.trim();
+            if (val && !isEmptyValue(val) && val.length < 200) return val;
           }
         }
       }
     }
+
     return "";
   }
 
+  function getAdjacentValue(el) {
+    // Check all next siblings
+    let sibling = el.nextElementSibling;
+    let attempts = 0;
+    while (sibling && attempts < 5) {
+      const text = sibling.textContent.trim();
+      if (text && !isEmptyValue(text) && text.length < 200) {
+        return text;
+      }
+      sibling = sibling.nextElementSibling;
+      attempts++;
+    }
+    return "";
+  }
+
+  function isEmptyValue(text) {
+    return EMPTY_VALUES.includes(text.toLowerCase());
+  }
+
   function findEmail() {
-    // Strategy 1: mailto links
+    // Strategy 1: mailto links (most reliable)
     const mailtoLinks = document.querySelectorAll('a[href^="mailto:"]');
     for (const link of mailtoLinks) {
       const email = link.href.replace("mailto:", "").split("?")[0].trim();
       if (email.includes("@")) return email;
     }
 
-    // Strategy 2: common selectors
-    const emailSelectors = [
-      '[data-testid*="email"]', '[class*="email"]', '[id*="email"]',
-      'a[href*="mailto"]'
-    ];
-    const emailText = queryText(emailSelectors);
-    if (emailText.includes("@")) return emailText;
+    // Strategy 2: By label
+    const byLabel = findByLabels(EMAIL_LABELS);
+    if (byLabel && byLabel.includes("@")) return byLabel;
 
-    // Strategy 3: regex scan of visible text
+    // Strategy 3: Regex scan — find emails in page text
     const emailRegex = /[\w.+-]+@[\w-]+\.[\w.]+/g;
     const bodyText = document.body.innerText;
     const matches = bodyText.match(emailRegex);
-    if (matches && matches.length > 0) {
-      // Filter out common non-candidate emails
+    if (matches) {
       const filtered = matches.filter(
-        (e) => !e.includes("teamtailor") && !e.includes("noreply") && !e.includes("support")
+        (e) => !e.includes("teamtailor") && !e.includes("noreply") && !e.includes("support") && !e.includes("@example")
       );
-      return filtered[0] || matches[0];
+      return filtered[0] || matches[0] || "";
     }
 
     return "";
@@ -84,90 +121,163 @@
       return link.href.replace("tel:", "").trim();
     }
 
-    // Strategy 2: by label
-    return findByLabel("phone") || findByLabel("telefon") || findByLabel("mobile");
+    // Strategy 2: By label
+    const byLabel = findByLabels(PHONE_LABELS);
+    if (byLabel) return byLabel;
+
+    // Strategy 3: Regex for phone numbers
+    const phoneRegex = /(\+\d{1,3}[\s.-]?\d{2,4}[\s.-]?\d{3,4}[\s.-]?\d{2,4}[\s.-]?\d{0,4})/g;
+    const bodyText = document.body.innerText;
+    const matches = bodyText.match(phoneRegex);
+    if (matches && matches.length > 0) return matches[0].trim();
+
+    return "";
   }
 
   function findName() {
-    // Strategy 1: Page title often has candidate name
-    const h1 = document.querySelector("h1");
-    if (h1) {
-      const text = h1.textContent.trim();
-      // Filter out generic headings
-      if (text && !text.toLowerCase().includes("candidate") && !text.toLowerCase().includes("dashboard") && text.length < 60) {
+    // On Teamtailor candidate pages, the name is typically the largest heading
+    // It's usually an h1 or a prominent element near the top
+
+    // Strategy 1: Look for h1 that contains a person's name (not navigation text)
+    const headings = document.querySelectorAll("h1, h2");
+    for (const h of headings) {
+      const text = h.textContent.trim();
+      // Filter out UI headings
+      const lower = text.toLowerCase();
+      if (
+        text &&
+        text.length < 60 &&
+        text.length > 2 &&
+        !lower.includes("kandidat") &&
+        !lower.includes("candidate") &&
+        !lower.includes("dashboard") &&
+        !lower.includes("pipeline") &&
+        !lower.includes("inställning") &&
+        !lower.includes("settings") &&
+        !lower.includes("teamtailor") &&
+        !lower.includes("logga") &&
+        !lower.includes("login") &&
+        // Name should have at least a space (first + last) or be reasonable
+        /^[A-ZÅÄÖÜÉÈÊËÀÂÆÇÎÏÔŒÙÛŒ][a-zåäöüéèêëàâæçîïôœùûœ]+(\s+[A-ZÅÄÖÜÉÈÊËÀÂÆÇÎÏÔŒÙÛŒ][a-zåäöüéèêëàâæçîïôœùûœ]+)+$/u.test(text)
+      ) {
         return text;
       }
     }
 
-    // Strategy 2: Common selectors
-    const nameSelectors = [
-      '[data-testid*="name"]', '[class*="candidate-name"]',
-      'h1', 'h2', '[class*="profile-name"]', '[class*="header"] h1',
-      '[class*="header"] h2'
-    ];
-    const name = queryText(nameSelectors);
-    if (name && name.length < 60) return name;
+    // Strategy 2: Less strict — first h1 that looks like a name
+    for (const h of headings) {
+      const text = h.textContent.trim();
+      if (text && text.length > 2 && text.length < 50 && text.includes(" ")) {
+        // Likely a name if it has 2-4 words, starts with uppercase
+        const words = text.split(/\s+/);
+        if (words.length >= 2 && words.length <= 4 && /^[A-ZÅÄÖÜ]/.test(words[0])) {
+          return text;
+        }
+      }
+    }
 
-    // Strategy 3: From document title
+    // Strategy 3: Document title
     const title = document.title;
-    if (title && !title.toLowerCase().includes("teamtailor")) {
-      const parts = title.split(/[|\-–—]/);
-      if (parts[0].trim().length < 60) return parts[0].trim();
+    if (title) {
+      const parts = title.split(/[|\-–—·]/);
+      const firstPart = parts[0].trim();
+      if (firstPart.length > 2 && firstPart.length < 50 && firstPart.includes(" ")) {
+        return firstPart;
+      }
     }
 
     return "";
   }
 
   function findRole() {
-    // Look for job title / position applied for
-    const role = findByLabel("position") || findByLabel("job") || findByLabel("role") || findByLabel("applied for");
+    // Try common labels for the applied position
+    const role = findByLabels(["position", "tjänst", "roll", "job", "role", "applied for", "ansökt till", "jobb"]);
     if (role) return role;
 
-    // Try breadcrumb or subtitle
-    const subtitles = document.querySelectorAll("h2, h3, [class*='subtitle'], [class*='position'], [class*='job-title']");
-    for (const el of subtitles) {
-      const text = el.textContent.trim();
-      if (text && text.length < 80 && !text.includes("@")) return text;
+    // Look for job title in breadcrumbs or subtitle areas
+    const breadcrumbs = document.querySelectorAll('[class*="breadcrumb"] a, nav a');
+    for (const a of breadcrumbs) {
+      const text = a.textContent.trim();
+      // Job titles are usually longer than 5 chars and don't look like nav items
+      if (text.length > 5 && text.length < 80 && !text.toLowerCase().includes("kandidat") && !text.toLowerCase().includes("candidate")) {
+        return text;
+      }
     }
 
     return "";
   }
 
   function findStage() {
-    return findByLabel("stage") || findByLabel("status") || findByLabel("pipeline") || "";
+    return findByLabels(STAGE_LABELS);
+  }
+
+  function findLocation() {
+    return findByLabels(LOCATION_LABELS);
   }
 
   function findTags() {
-    const tagElements = document.querySelectorAll('[class*="tag"], [class*="chip"], [class*="badge"]');
+    const tagsText = findByLabels(TAGS_LABELS);
+    if (tagsText && !isEmptyValue(tagsText)) {
+      // Tags might be comma-separated or in separate elements
+      return tagsText.split(/[,;]/).map((t) => t.trim()).filter(Boolean);
+    }
+
+    // Also look for badge/chip elements near "Taggar" or "Tags"
+    const tagContainers = document.querySelectorAll('[class*="tag"], [class*="chip"], [class*="badge"], [class*="label"]');
     const tags = [];
-    tagElements.forEach((el) => {
+    tagContainers.forEach((el) => {
       const text = el.textContent.trim();
-      if (text && text.length < 30 && !text.includes("\n")) {
+      if (text && text.length > 1 && text.length < 30 && !text.includes("\n") && !isEmptyValue(text)) {
         tags.push(text);
       }
     });
     return [...new Set(tags)].slice(0, 10);
   }
 
-  function scrapeCandidate() {
-    return {
-      name: findName(),
-      email: findEmail(),
-      phone: findPhone(),
-      role: findRole(),
-      stage: findStage(),
-      tags: findTags(),
-      tt_profile_url: window.location.href,
-      tt_candidate_id: extractCandidateId(),
-      gdpr_consent: true,
-      notes: "",
-    };
+  function findSource() {
+    // "via Arbetsförmedlingen" etc — look for "via" text
+    const allEls = document.querySelectorAll("span, p, div, a");
+    for (const el of allEls) {
+      const text = el.textContent.trim();
+      if (text.toLowerCase().startsWith("via ") && text.length < 60) {
+        return text;
+      }
+    }
+    return "";
   }
 
   function extractCandidateId() {
-    // Try to extract candidate ID from URL: /candidates/12345 or /candidates/abc-123
-    const match = window.location.pathname.match(/candidates\/([^/]+)/);
+    const match = window.location.pathname.match(/candidates\/([^/?#]+)/);
     return match ? match[1] : "";
+  }
+
+  function scrapeCandidate() {
+    const name = findName();
+    const email = findEmail();
+    const phone = findPhone();
+    const role = findRole();
+    const stage = findStage();
+    const location = findLocation();
+    const tags = findTags();
+    const source = findSource();
+
+    // Build notes from extra info
+    const notesParts = [];
+    if (source) notesParts.push(`Source: ${source}`);
+    if (location) notesParts.push(`Location: ${location}`);
+
+    return {
+      name: name,
+      email: email,
+      phone: phone,
+      role: role,
+      stage: stage,
+      tags: tags,
+      notes: notesParts.join(". "),
+      tt_profile_url: window.location.href,
+      tt_candidate_id: extractCandidateId(),
+      gdpr_consent: true,
+    };
   }
 
   // Listen for messages from popup
@@ -176,6 +286,6 @@
       const data = scrapeCandidate();
       sendResponse({ success: true, data });
     }
-    return true; // Keep message channel open for async response
+    return true;
   });
 })();
