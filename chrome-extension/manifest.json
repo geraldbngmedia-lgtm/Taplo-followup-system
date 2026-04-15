@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Taplo — Candidate Nurturing",
+  "name": "Taplo - Candidate Nurturing",
   "description": "Push candidates from Teamtailor into your Taplo pipeline with one click.",
   "version": "1.0.0",
   "permissions": ["activeTab", "storage"],
