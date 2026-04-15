@@ -175,16 +175,60 @@
   // ========================
 
   function liFindName() {
-    // LinkedIn profile pages: name is in h1
-    // Regular profile: h1.text-heading-xlarge or h1 inside .pv-top-card
-    // Recruiter: h1 inside .profile-topcard
+    // LinkedIn Recruiter uses different DOM than regular LinkedIn
+    // Recruiter candidate profile: name is often in specific profile card elements
+    const isRecruiter = window.location.hostname.includes("linkedin.com") &&
+      (window.location.pathname.includes("/talent/") || window.location.pathname.includes("/recruiter/") || window.location.pathname.includes("/hire/"));
 
-    // Strategy 1: Regular LinkedIn profile
+    // Strategy 1: LinkedIn Recruiter specific selectors
+    if (isRecruiter) {
+      const recruiterSelectors = [
+        ".profile-topcard-person-entity__name",
+        "[data-test-topcard-name]",
+        ".topcard-person-entity h1",
+        ".profile-topcard h1",
+        ".artdeco-entity-lockup__title",
+        ".topcard__flavor--black",
+        ".profile-info h1",
+        '[class*="topcard"] [class*="name"]',
+        '[class*="profile"] [class*="name"] h1',
+        '[class*="profile-card"] h1',
+      ];
+      for (const sel of recruiterSelectors) {
+        try {
+          const el = document.querySelector(sel);
+          if (el) {
+            const text = cleanName(el.textContent.trim());
+            if (text && text.length >= 2 && text.length < 60 && text.includes(" ")) return text;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      // Recruiter fallback: scan all elements for a name pattern near a profile photo
+      // The name is typically near an img with a profile photo
+      const nameNearPhoto = document.querySelectorAll("h1, h2, span[class*='name'], a[class*='name']");
+      for (const el of nameNearPhoto) {
+        const text = cleanName(el.textContent.trim());
+        if (!text || text.length < 4 || text.length > 50) continue;
+        const lower = text.toLowerCase();
+        // Skip job titles, project names, UI elements
+        if (lower.includes("from ") || lower.includes("operations") || lower.includes("manager") ||
+            lower.includes("engineer") || lower.includes("director") || lower.includes("linkedin") ||
+            lower.includes("search") || lower.includes("project") || lower.includes("recruiter") ||
+            lower.includes("similar") || lower.includes("tools") || lower.includes("profiles")) continue;
+        // Must look like a person name: 2-4 words, capitalized
+        const words = text.split(/\s+/);
+        if (words.length >= 2 && words.length <= 4 && words.every((w) => /^[A-ZÅÄÖÜÉÈÊËÀÂ]/.test(w))) {
+          return text;
+        }
+      }
+    }
+
+    // Strategy 2: Regular LinkedIn profile selectors
     const selectors = [
       "h1.text-heading-xlarge",
       ".pv-top-card h1",
       ".text-heading-xlarge",
-      ".profile-topcard-person-entity__name",
       ".topcard-link h1",
       "h1[class*='inline']",
     ];
@@ -198,24 +242,33 @@
       } catch (e) { /* ignore */ }
     }
 
-    // Strategy 2: First h1 that looks like a name
+    // Strategy 3: First h1 that looks like a person name (not a job/project title)
     const headings = document.querySelectorAll("h1");
     for (const h of headings) {
       const text = cleanName(h.textContent.trim());
-      if (!text || text.length < 2 || text.length > 60) continue;
+      if (!text || text.length < 4 || text.length > 50) continue;
       const lower = text.toLowerCase();
-      if (lower.includes("linkedin") || lower.includes("search") || lower.includes("home") || lower.includes("feed")) continue;
-      if (text.includes(" ") && /^[A-ZÅÄÖÜ]/.test(text)) return text;
+      if (lower.includes("linkedin") || lower.includes("search") || lower.includes("home") ||
+          lower.includes("feed") || lower.includes("from ") || lower.includes("project") ||
+          lower.includes("similar")) continue;
+      const words = text.split(/\s+/);
+      if (words.length >= 2 && words.length <= 4 && words.every((w) => /^[A-ZÅÄÖÜÉÈÊËÀÂ]/.test(w))) {
+        return text;
+      }
     }
 
-    // Strategy 3: Document title — "Lea Anton - Senior Designer - Company | LinkedIn"
+    // Strategy 4: Document title — "Pernilla Nicklasson | LinkedIn" on regular pages
     const title = document.title || "";
     if (title) {
       const parts = title.split(/[|\-–—·]/);
       const firstPart = cleanName(parts[0].trim());
-      if (firstPart.length >= 2 && firstPart.length < 50 && firstPart.includes(" ") &&
-          !firstPart.toLowerCase().includes("linkedin")) {
-        return firstPart;
+      if (firstPart.length >= 4 && firstPart.length < 50 && firstPart.includes(" ") &&
+          !firstPart.toLowerCase().includes("linkedin") && !firstPart.toLowerCase().startsWith("from ")) {
+        // Verify it looks like a name, not a job title
+        const words = firstPart.split(/\s+/);
+        if (words.length >= 2 && words.length <= 4 && words.every((w) => /^[A-ZÅÄÖÜÉÈÊËÀÂ]/.test(w))) {
+          return firstPart;
+        }
       }
     }
 
