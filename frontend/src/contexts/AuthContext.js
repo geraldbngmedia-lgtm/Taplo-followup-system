@@ -4,7 +4,25 @@ import axios from 'axios';
 const AuthContext = createContext(null);
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Configure axios defaults
+// Set up axios to always send the token
+function setAxiosToken(token) {
+    if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        localStorage.setItem('taplo_access_token', token);
+    } else {
+        delete axios.defaults.headers.common['Authorization'];
+        localStorage.removeItem('taplo_access_token');
+        localStorage.removeItem('taplo_refresh_token');
+    }
+}
+
+// Initialize token from localStorage on load
+const savedToken = localStorage.getItem('taplo_access_token');
+if (savedToken) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+}
+
+// Always send cookies too as fallback
 axios.defaults.withCredentials = true;
 
 function formatApiErrorDetail(detail) {
@@ -21,10 +39,18 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     const checkAuth = useCallback(async () => {
+        const token = localStorage.getItem('taplo_access_token');
+        if (!token) {
+            setUser(false);
+            setLoading(false);
+            return;
+        }
         try {
-            const { data } = await axios.get(`${API}/auth/me`, { withCredentials: true });
+            const { data } = await axios.get(`${API}/auth/me`);
             setUser(data);
         } catch {
+            // Token expired or invalid — clear it
+            setAxiosToken(null);
             setUser(false);
         } finally {
             setLoading(false);
@@ -35,8 +61,12 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            const { data } = await axios.post(`${API}/auth/login`, { email, password }, { withCredentials: true });
-            setUser(data);
+            const { data } = await axios.post(`${API}/auth/login`, { email, password });
+            if (data.access_token) {
+                setAxiosToken(data.access_token);
+                if (data.refresh_token) localStorage.setItem('taplo_refresh_token', data.refresh_token);
+            }
+            setUser({ id: data.id, name: data.name, email: data.email, role: data.role });
             return { success: true };
         } catch (e) {
             return { success: false, error: formatApiErrorDetail(e.response?.data?.detail) || e.message };
@@ -45,8 +75,12 @@ export function AuthProvider({ children }) {
 
     const register = async (name, email, password) => {
         try {
-            const { data } = await axios.post(`${API}/auth/register`, { name, email, password }, { withCredentials: true });
-            setUser(data);
+            const { data } = await axios.post(`${API}/auth/register`, { name, email, password });
+            if (data.access_token) {
+                setAxiosToken(data.access_token);
+                if (data.refresh_token) localStorage.setItem('taplo_refresh_token', data.refresh_token);
+            }
+            setUser({ id: data.id, name: data.name, email: data.email, role: data.role });
             return { success: true };
         } catch (e) {
             return { success: false, error: formatApiErrorDetail(e.response?.data?.detail) || e.message };
@@ -55,8 +89,9 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            await axios.post(`${API}/auth/logout`, {}, { withCredentials: true });
+            await axios.post(`${API}/auth/logout`, {});
         } catch { /* ignore */ }
+        setAxiosToken(null);
         setUser(false);
     };
 

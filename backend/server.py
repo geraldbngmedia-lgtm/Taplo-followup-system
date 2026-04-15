@@ -148,7 +148,7 @@ async def register(data: RegisterInput, response: Response):
     refresh_token = create_refresh_token(user_id)
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="none", max_age=86400, path="/")
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=True, samesite="none", max_age=604800, path="/")
-    return {"id": user_id, "name": data.name, "email": email, "role": "recruiter"}
+    return {"id": user_id, "name": data.name, "email": email, "role": "recruiter", "access_token": access_token, "refresh_token": refresh_token}
 
 @api_router.post("/auth/login")
 async def login(data: LoginInput, response: Response, request: Request):
@@ -161,7 +161,7 @@ async def login(data: LoginInput, response: Response, request: Request):
     refresh_token = create_refresh_token(user_id)
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="none", max_age=86400, path="/")
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=True, samesite="none", max_age=604800, path="/")
-    return {"id": user_id, "name": user["name"], "email": email, "role": user.get("role", "recruiter")}
+    return {"id": user_id, "name": user["name"], "email": email, "role": user.get("role", "recruiter"), "access_token": access_token, "refresh_token": refresh_token}
 
 @api_router.post("/auth/logout")
 async def logout(response: Response):
