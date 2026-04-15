@@ -63,12 +63,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   saveSettingsBtn.addEventListener("click", () => {
-    const url = apiUrlInput.value.trim().replace(/\/$/, "");
+    let url = apiUrlInput.value.trim().replace(/\/$/, "");
+    // Strip /api or any path if user pasted full endpoint URL
+    url = url.replace(/\/api\/.*$/, "").replace(/\/api$/, "");
     const key = extKeyInput.value.trim();
     if (!url || !key) {
       showStatus(settingsStatus, "Both fields are required", "error");
       return;
     }
+    apiUrlInput.value = url;
     chrome.storage.local.set({ taplo_api_url: url, taplo_ext_key: key }, () => {
       showStatus(settingsStatus, "Settings saved!", "success");
       setTimeout(() => {
