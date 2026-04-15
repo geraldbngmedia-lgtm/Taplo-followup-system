@@ -503,8 +503,8 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
         update_fields = {}
         if data.role:
             update_fields["role"] = data.role
-        if data.stage:
-            update_fields["notes"] = f"{existing.get('notes', '')}\nStage update: {data.stage}".strip()
+        if data.stage and data.stage in {"silver_medallist", "not_ready_yet", "pipeline", "offer_declined"}:
+            update_fields["group"] = data.stage
         if data.tt_profile_url:
             update_fields["tt_profile_url"] = data.tt_profile_url
         update_fields["last_contact_date"] = datetime.now(timezone.utc).isoformat()
@@ -515,12 +515,14 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
         existing = await db.candidates.find_one({"_id": existing["_id"]})
         return {"status": "updated", "candidate": serialize_candidate(existing)}
 
-    # Create new candidate
+    # Create new candidate — use stage as group if it's a valid group name
+    valid_groups = {"silver_medallist", "not_ready_yet", "pipeline", "offer_declined"}
+    group = data.stage if data.stage in valid_groups else "pipeline"
     doc = {
         "name": data.name,
         "email": email,
-        "role": data.role or "Unknown Role",
-        "group": "pipeline",  # Default group, recruiter can change later
+        "role": data.role or "",
+        "group": group,
         "reason": "",
         "notes": data.notes or "",
         "gdpr_consent": data.gdpr_consent,
@@ -533,7 +535,6 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
         "tt_profile_url": data.tt_profile_url,
         "phone": data.phone or "",
         "tags": data.tags or [],
-        "stage": data.stage or "",
     }
     result = await db.candidates.insert_one(doc)
     doc["_id"] = result.inserted_id

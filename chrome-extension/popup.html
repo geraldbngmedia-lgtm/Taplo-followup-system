@@ -35,7 +35,7 @@
       <div class="field">
         <label>Extension API Key</label>
         <input type="password" id="extKey" placeholder="taplo_ext_..." />
-        <span class="hint">Found in Dashboard → Extension page</span>
+        <span class="hint">Found in Dashboard &rarr; Extension page</span>
       </div>
       <button id="saveSettings" class="btn btn-primary">Save Settings</button>
       <div id="settingsStatus" class="status hidden"></div>
@@ -78,12 +78,17 @@
         </div>
         <div class="field">
           <label>Role</label>
-          <input type="text" id="candRole" placeholder="Position applied for" />
+          <input type="text" id="candRole" placeholder="e.g. Senior Frontend Developer" />
         </div>
         <div class="row">
           <div class="field flex-1">
-            <label>Stage</label>
-            <input type="text" id="candStage" placeholder="e.g. Interview" />
+            <label>Group <span class="required">*</span></label>
+            <select id="candGroup">
+              <option value="pipeline">Pipeline</option>
+              <option value="silver_medallist">Silver Medallist</option>
+              <option value="not_ready_yet">Not Ready Yet</option>
+              <option value="offer_declined">Offer Declined</option>
+            </select>
           </div>
           <div class="field flex-1">
             <label>Phone</label>
@@ -93,10 +98,6 @@
         <div class="field">
           <label>Notes</label>
           <textarea id="candNotes" placeholder="Any notes about this candidate..." rows="2"></textarea>
-        </div>
-        <div class="field">
-          <label>Tags</label>
-          <input type="text" id="candTags" placeholder="Comma-separated tags" />
         </div>
         <div class="toggle-row">
           <span>GDPR Consent</span>
