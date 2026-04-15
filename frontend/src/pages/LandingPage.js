@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Lightning, Users, Timer, ShieldCheck, Envelope, ChartLineUp } from '@phosphor-icons/react';
+import { ArrowRight, Lightning, Users, Timer, ShieldCheck, Envelope, ChartLineUp, Check, X as XIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DashboardMockup from '@/components/DashboardMockup';
@@ -136,7 +136,7 @@ export default function LandingPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { num: "01", title: "Tag & Categorise", desc: "When a candidate exits active hiring, add them to Taplo with one tap. Choose their group: Silver Medallist, Not Ready Yet, Pipeline, or Offer Declined.", icon: Users },
+                            { num: "01", title: "Push from Teamtailor", desc: "Browsing a candidate profile in Teamtailor? Click the Taplo Chrome extension to capture their details and push them straight into your pipeline.", icon: Users },
                             { num: "02", title: "AI Drafts the Message", desc: "When it's time to follow up, Taplo's AI generates a personalised, context-aware email draft. Review it, tweak if needed, and send with one click.", icon: Envelope },
                             { num: "03", title: "Track & Stay Warm", desc: "Monitor warmth scores, see who's going cold, and get daily digests showing exactly who needs attention today.", icon: ChartLineUp },
                         ].map((step, i) => (
@@ -171,6 +171,116 @@ export default function LandingPage() {
                                 <f.icon weight="duotone" className="w-7 h-7 text-ocean mb-4" />
                                 <h3 className="font-heading text-lg font-semibold mb-2">{f.title}</h3>
                                 <p className="text-[#A0AAB2] text-sm leading-relaxed">{f.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Pricing */}
+            <section className="py-24 md:py-32 border-t border-white/5" data-testid="pricing-section">
+                <div className="max-w-7xl mx-auto px-6 md:px-12">
+                    <div className="text-center mb-16">
+                        <p className="text-xs tracking-[0.2em] uppercase font-bold text-ocean mb-4 font-heading">Pricing</p>
+                        <h2 className="font-heading text-3xl sm:text-4xl tracking-tight font-bold">Simple per-seat pricing</h2>
+                        <p className="text-[#A0AAB2] text-base mt-3 max-w-lg mx-auto">Start free. Scale as your team grows.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        {[
+                            {
+                                name: 'Starter',
+                                price: '29',
+                                period: '/seat/month',
+                                desc: 'For individual recruiters getting started',
+                                featured: false,
+                                features: [
+                                    { text: 'Up to 50 nurtured candidates', included: true },
+                                    { text: 'AI follow-up drafts', included: true },
+                                    { text: 'Warmth scoring', included: true },
+                                    { text: 'Chrome extension', included: true },
+                                    { text: 'Daily digest', included: false },
+                                    { text: 'Team pipeline sharing', included: false },
+                                    { text: 'Priority support', included: false },
+                                ],
+                            },
+                            {
+                                name: 'Growth',
+                                price: '59',
+                                period: '/seat/month',
+                                desc: 'For growing recruitment teams',
+                                featured: true,
+                                features: [
+                                    { text: 'Up to 250 nurtured candidates', included: true },
+                                    { text: 'AI follow-up drafts', included: true },
+                                    { text: 'Warmth scoring', included: true },
+                                    { text: 'Chrome extension', included: true },
+                                    { text: 'Daily digest email', included: true },
+                                    { text: 'Team pipeline sharing', included: true },
+                                    { text: 'Priority support', included: false },
+                                ],
+                            },
+                            {
+                                name: 'Agency',
+                                price: '99',
+                                period: '/seat/month',
+                                desc: 'For agencies managing multiple clients',
+                                featured: false,
+                                features: [
+                                    { text: 'Unlimited candidates', included: true },
+                                    { text: 'AI follow-up drafts', included: true },
+                                    { text: 'Warmth scoring', included: true },
+                                    { text: 'Chrome extension', included: true },
+                                    { text: 'Daily digest email', included: true },
+                                    { text: 'Team pipeline sharing', included: true },
+                                    { text: 'Priority support & onboarding', included: true },
+                                ],
+                            },
+                        ].map((plan, i) => (
+                            <div
+                                key={plan.name}
+                                className={`rounded-2xl p-6 flex flex-col opacity-0 animate-fade-up ${
+                                    plan.featured
+                                        ? 'bg-surface-card border-2 border-coral/40 relative'
+                                        : 'bg-surface-card border border-white/5'
+                                }`}
+                                style={{ animationDelay: `${i * 0.08}s` }}
+                                data-testid={`pricing-${plan.name.toLowerCase()}`}
+                            >
+                                {plan.featured && (
+                                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-coral text-[#0A0C10] text-[10px] font-bold px-3 py-1 rounded-full tracking-wide uppercase">
+                                        Most Popular
+                                    </span>
+                                )}
+                                <h3 className="font-heading text-lg font-semibold text-[#F1F3F5] mb-1">{plan.name}</h3>
+                                <p className="text-[#6E7781] text-xs mb-4">{plan.desc}</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-heading font-bold text-[#F1F3F5]">${plan.price}</span>
+                                    <span className="text-[#6E7781] text-sm ml-1">{plan.period}</span>
+                                </div>
+                                <ul className="space-y-3 flex-1 mb-6">
+                                    {plan.features.map((f, j) => (
+                                        <li key={j} className="flex items-center gap-2.5 text-sm">
+                                            {f.included ? (
+                                                <Check weight="bold" className="w-4 h-4 text-coral shrink-0" />
+                                            ) : (
+                                                <XIcon weight="bold" className="w-4 h-4 text-[#2A2E39] shrink-0" />
+                                            )}
+                                            <span className={f.included ? 'text-[#A0AAB2]' : 'text-[#6E7781]/50'}>{f.text}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Link to="/register">
+                                    <Button
+                                        className={`w-full rounded-full font-medium h-10 ${
+                                            plan.featured
+                                                ? 'bg-coral hover:bg-coral-hover text-[#0A0C10]'
+                                                : 'bg-white/5 hover:bg-white/10 text-[#F1F3F5] border border-[#2A2E39]'
+                                        }`}
+                                        data-testid={`pricing-${plan.name.toLowerCase()}-cta`}
+                                    >
+                                        Get Started
+                                    </Button>
+                                </Link>
                             </div>
                         ))}
                     </div>
