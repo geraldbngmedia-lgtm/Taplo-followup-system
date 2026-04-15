@@ -3,9 +3,8 @@ import { CalendarDot, Warning, Fire, Snowflake, TrendUp, Users } from '@phosphor
 import { WarmthBadge } from '@/components/WarmthIndicator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { API } from '@/config';
 import axios from 'axios';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const groupLabels = {
     silver_medallist: 'Silver Medallist',

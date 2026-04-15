@@ -4,9 +4,9 @@ import { ArrowRight, Lightning, Users, Timer, ShieldCheck, Envelope, ChartLineUp
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DashboardMockup from '@/components/DashboardMockup';
+import { API } from '@/config';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
 
 export default function LandingPage() {

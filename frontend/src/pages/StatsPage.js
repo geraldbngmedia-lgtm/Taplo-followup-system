@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Fire, TrendUp, Snowflake, Thermometer } from '@phosphor-icons/react';
+import { API } from '@/config';
 import axios from 'axios';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const groupLabels = {
     silver_medallist: 'Silver Medallist',

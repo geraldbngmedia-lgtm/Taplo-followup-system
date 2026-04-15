@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PaperPlaneTilt, SpinnerGap, PencilSimple, Copy } from '@phosphor-icons/react';
+import { API } from '@/config';
 import axios from 'axios';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function FollowUpDialog({ open, onOpenChange, candidate, onFollowUpSent }) {
     const [loading, setLoading] = useState(false);

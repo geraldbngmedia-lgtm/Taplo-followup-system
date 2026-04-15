@@ -9,9 +9,8 @@ import { Link } from 'react-router-dom';
 import CandidateCard from '@/components/CandidateCard';
 import AddCandidateDialog from '@/components/AddCandidateDialog';
 import FollowUpDialog from '@/components/FollowUpDialog';
+import { API } from '@/config';
 import axios from 'axios';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const tabGroups = [
     { value: 'all', label: 'All Candidates' },

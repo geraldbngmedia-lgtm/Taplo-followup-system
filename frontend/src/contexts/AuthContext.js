@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+import { API } from '@/config';
+
 const AuthContext = createContext(null);
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Set up axios to always send the token
 function setAxiosToken(token) {

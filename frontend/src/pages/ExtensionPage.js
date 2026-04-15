@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { PuzzlePiece, Key, ArrowsClockwise, Copy, CheckCircle, Globe, Code, Lightning, Briefcase } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { API } from '@/config';
 import axios from 'axios';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ExtensionPage() {
     const [extKey, setExtKey] = useState('');
@@ -166,7 +165,7 @@ export default function ExtensionPage() {
                     <div className="bg-surface-base border border-[#2A2E39] rounded-xl p-4">
                         <p className="text-[#A0AAB2] mb-2">The extension sends candidate data to this endpoint:</p>
                         <code className="block text-ocean text-xs font-mono bg-[#0A0C10] rounded-lg p-3 border border-[#2A2E39]">
-                            POST {process.env.REACT_APP_BACKEND_URL}/api/extension/push-candidate
+                            POST {window.location.origin}/api/extension/push-candidate
                         </code>
                     </div>
                     <div className="bg-surface-base border border-[#2A2E39] rounded-xl p-4">
