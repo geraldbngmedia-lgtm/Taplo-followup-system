@@ -13,6 +13,8 @@ class TaploAPITester:
         self.tests_passed = 0
         self.user_id = None
         self.candidate_id = None
+        self.extension_key = None
+        self.extension_candidate_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, cookies=None):
         """Run a single API test"""
@@ -237,107 +239,236 @@ class TaploAPITester:
         return success
 
     # ========================
-    # Teamtailor Integration Tests
+    # Extension Integration Tests
     # ========================
 
-    def test_teamtailor_status_no_key(self):
-        """Test Teamtailor status when no API key is configured"""
+    def test_extension_get_key(self):
+        """Test getting extension API key"""
         success, response = self.run_test(
-            "Teamtailor Status (No Key)",
+            "Extension Get Key",
             "GET",
-            "teamtailor/status",
+            "extension/key",
             200
         )
         if success:
-            # Should return connected: false, has_key: false
-            expected_keys = ['connected', 'has_key']
+            # Should return ext_key and push_count
+            expected_keys = ['ext_key', 'push_count']
             if all(key in response for key in expected_keys):
-                if response['connected'] == False and response['has_key'] == False:
-                    print("   ✅ Correct response format for no key")
+                if response['ext_key'].startswith('taplo_ext_'):
+                    print("   ✅ Extension key generated correctly")
+                    self.extension_key = response['ext_key']
                     return True
                 else:
-                    print(f"   ❌ Unexpected values: connected={response.get('connected')}, has_key={response.get('has_key')}")
+                    print(f"   ❌ Invalid extension key format: {response.get('ext_key')}")
                     return False
             else:
                 print(f"   ❌ Missing expected keys in response")
                 return False
         return success
 
-    def test_teamtailor_sync_status_no_key(self):
-        """Test Teamtailor sync status when no API key is configured"""
+    def test_extension_regenerate_key(self):
+        """Test regenerating extension API key"""
         success, response = self.run_test(
-            "Teamtailor Sync Status (No Key)",
-            "GET",
-            "teamtailor/sync-status",
+            "Extension Regenerate Key",
+            "POST",
+            "extension/regenerate-key",
             200
         )
         if success:
-            # Should return connected: false, should_sync: false
-            expected_keys = ['connected', 'should_sync']
-            if all(key in response for key in expected_keys):
-                if response['connected'] == False and response['should_sync'] == False:
-                    print("   ✅ Correct response format for no key")
+            # Should return new ext_key
+            if 'ext_key' in response and response['ext_key'].startswith('taplo_ext_'):
+                print("   ✅ Extension key regenerated correctly")
+                self.extension_key = response['ext_key']
+                return True
+            else:
+                print(f"   ❌ Invalid regenerated key: {response.get('ext_key')}")
+                return False
+        return success
+
+    def test_extension_push_candidate_no_key(self):
+        """Test pushing candidate without extension key"""
+        success, response = self.run_test(
+            "Extension Push Candidate (No Key)",
+            "POST",
+            "extension/push-candidate",
+            401,
+            data={
+                "name": "Test Candidate",
+                "email": "test@example.com",
+                "role": "Developer"
+            }
+        )
+        if success:
+            # Should return 401 with missing key error
+            if 'detail' in response and 'Missing extension key' in response['detail']:
+                print("   ✅ Correct error for missing key")
+                return True
+            else:
+                print(f"   ❌ Unexpected error message: {response.get('detail')}")
+                return False
+        return success
+
+    def test_extension_push_candidate_invalid_key(self):
+        """Test pushing candidate with invalid extension key"""
+        # Override headers for this test
+        url = f"{self.base_url}/api/extension/push-candidate"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Extension-Key': 'invalid_key_12345'
+        }
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing Extension Push Candidate (Invalid Key)...")
+        print(f"   URL: POST {url}")
+        
+        try:
+            response = self.session.post(url, json={
+                "name": "Test Candidate",
+                "email": "test@example.com",
+                "role": "Developer"
+            }, headers=headers)
+
+            success = response.status_code == 401
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    if 'detail' in response_data and 'Invalid extension key' in response_data['detail']:
+                        print("   ✅ Correct error for invalid key")
+                        return True
+                    else:
+                        print(f"   ❌ Unexpected error message: {response_data.get('detail')}")
+                        return False
+                except:
                     return True
-                else:
-                    print(f"   ❌ Unexpected values: connected={response.get('connected')}, should_sync={response.get('should_sync')}")
-                    return False
             else:
-                print(f"   ❌ Missing expected keys in response")
+                print(f"❌ Failed - Expected 401, got {response.status_code}")
                 return False
-        return success
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
 
-    def test_teamtailor_connect_invalid_key(self):
-        """Test Teamtailor connect with invalid API key"""
-        success, response = self.run_test(
-            "Teamtailor Connect (Invalid Key)",
-            "POST",
-            "teamtailor/connect",
-            400,
-            data={"api_key": "invalid_key_12345"}
-        )
-        if success:
-            # Should return 400 with error message about invalid API key
-            if 'detail' in response and 'Invalid API key' in response['detail']:
-                print("   ✅ Correct error message for invalid key")
-                return True
+    def test_extension_push_candidate_valid_key(self):
+        """Test pushing candidate with valid extension key"""
+        if not hasattr(self, 'extension_key'):
+            print("⚠️  Skipping push candidate test - no extension key available")
+            return True
+            
+        # Override headers for this test
+        url = f"{self.base_url}/api/extension/push-candidate"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Extension-Key': self.extension_key
+        }
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing Extension Push Candidate (Valid Key)...")
+        print(f"   URL: POST {url}")
+        
+        try:
+            response = self.session.post(url, json={
+                "name": "Alex Rivera",
+                "email": "alex.rivera@example.com",
+                "role": "Senior Frontend Developer",
+                "phone": "+1234567890",
+                "stage": "Rejected",
+                "tags": ["senior", "frontend"],
+                "notes": "Great candidate, would be perfect for future roles",
+                "gdpr_consent": True,
+                "tt_candidate_id": "12345",
+                "tt_profile_url": "https://teamtailor.com/candidate/12345"
+            }, headers=headers)
+
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    if 'status' in response_data and response_data['status'] == 'created':
+                        print("   ✅ Candidate created successfully")
+                        self.extension_candidate_id = response_data.get('candidate', {}).get('id')
+                        return True
+                    else:
+                        print(f"   ❌ Unexpected response: {response_data}")
+                        return False
+                except:
+                    return True
             else:
-                print(f"   ❌ Unexpected error message: {response.get('detail')}")
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text}")
                 return False
-        return success
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
 
-    def test_teamtailor_sync_no_key(self):
-        """Test Teamtailor sync without API key configured"""
-        success, response = self.run_test(
-            "Teamtailor Sync (No Key)",
-            "POST",
-            "teamtailor/sync",
-            400
-        )
-        if success:
-            # Should return 400 error
-            if 'detail' in response and 'not connected' in response['detail'].lower():
-                print("   ✅ Correct error message for sync without key")
-                return True
+    def test_extension_push_candidate_duplicate(self):
+        """Test pushing duplicate candidate (should update existing)"""
+        if not hasattr(self, 'extension_key'):
+            print("⚠️  Skipping duplicate push test - no extension key available")
+            return True
+            
+        # Override headers for this test
+        url = f"{self.base_url}/api/extension/push-candidate"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Extension-Key': self.extension_key
+        }
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing Extension Push Candidate (Duplicate)...")
+        print(f"   URL: POST {url}")
+        
+        try:
+            response = self.session.post(url, json={
+                "name": "Alex Rivera",
+                "email": "alex.rivera@example.com",  # Same email as before
+                "role": "Senior Backend Developer",  # Different role
+                "stage": "Interview",
+                "notes": "Updated notes from extension"
+            }, headers=headers)
+
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    if 'status' in response_data and response_data['status'] == 'updated':
+                        print("   ✅ Candidate updated successfully")
+                        return True
+                    else:
+                        print(f"   ❌ Expected 'updated' status, got: {response_data.get('status')}")
+                        return False
+                except:
+                    return True
             else:
-                print(f"   ❌ Unexpected error message: {response.get('detail')}")
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
                 return False
-        return success
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
 
-    def test_teamtailor_disconnect(self):
-        """Test Teamtailor disconnect (should work even when not connected)"""
+    def test_extension_recent_pushes(self):
+        """Test getting recent extension pushes"""
         success, response = self.run_test(
-            "Teamtailor Disconnect",
-            "DELETE",
-            "teamtailor/disconnect",
+            "Extension Recent Pushes",
+            "GET",
+            "extension/recent-pushes",
             200
         )
         if success:
-            # Should return success message
-            if 'message' in response and 'disconnected' in response['message'].lower():
-                print("   ✅ Disconnect works even when not connected")
+            # Should return array of candidates
+            if isinstance(response, list):
+                print(f"   ✅ Returned {len(response)} recent pushes")
                 return True
             else:
-                print(f"   ❌ Unexpected response: {response}")
+                print(f"   ❌ Expected array, got: {type(response)}")
                 return False
         return success
 
@@ -361,12 +492,14 @@ def main():
         ("Daily Digest", tester.test_digest),
         ("Dashboard Stats", tester.test_stats),
         ("Delete Candidate", tester.test_delete_candidate),
-        # Teamtailor Integration Tests
-        ("TT Status (No Key)", tester.test_teamtailor_status_no_key),
-        ("TT Sync Status (No Key)", tester.test_teamtailor_sync_status_no_key),
-        ("TT Connect (Invalid Key)", tester.test_teamtailor_connect_invalid_key),
-        ("TT Sync (No Key)", tester.test_teamtailor_sync_no_key),
-        ("TT Disconnect", tester.test_teamtailor_disconnect),
+        # Extension Integration Tests
+        ("Extension Get Key", tester.test_extension_get_key),
+        ("Extension Regenerate Key", tester.test_extension_regenerate_key),
+        ("Extension Push (No Key)", tester.test_extension_push_candidate_no_key),
+        ("Extension Push (Invalid Key)", tester.test_extension_push_candidate_invalid_key),
+        ("Extension Push (Valid Key)", tester.test_extension_push_candidate_valid_key),
+        ("Extension Push (Duplicate)", tester.test_extension_push_candidate_duplicate),
+        ("Extension Recent Pushes", tester.test_extension_recent_pushes),
         ("Logout", tester.test_logout),
     ]
     

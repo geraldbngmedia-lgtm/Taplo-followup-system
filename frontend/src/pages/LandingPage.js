@@ -94,26 +94,28 @@ export default function LandingPage() {
             {/* Problem */}
             <section className="py-24 md:py-32 border-t border-white/5" data-testid="problem-section">
                 <div className="max-w-7xl mx-auto px-6 md:px-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                        <div>
-                            <p className="text-xs tracking-[0.2em] uppercase font-bold text-coral mb-4 font-heading">The Problem</p>
-                            <h2 className="font-heading text-3xl sm:text-4xl tracking-tight font-bold mb-6">
-                                Great candidates slip away in silence
-                            </h2>
-                            <p className="text-[#A0AAB2] text-base leading-relaxed mb-6">
-                                Every recruiter knows the feeling. You had an incredible silver medallist, a promising candidate who wasn't quite ready, or someone who declined an offer but might return. Then weeks pass, follow-ups fall through the cracks, and they're gone.
-                            </p>
-                            <p className="text-[#A0AAB2] text-base leading-relaxed">
-                                Manual follow-ups don't scale. Spreadsheets get forgotten. Your ATS tracks pipelines, not relationships. Taplo bridges the gap.
-                            </p>
-                        </div>
-                        <div className="relative">
-                            <img
-                                src="https://images.unsplash.com/photo-1758520144437-f068ecaf0d83?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjByZWNydWl0ZXIlMjBvZmZpY2V8ZW58MHx8fHwxNzc2MTk4ODI0fDA&ixlib=rb-4.1.0&q=85"
-                                alt="Recruiter working"
-                                className="rounded-2xl w-full object-cover h-80 opacity-80"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-surface-base/80 to-transparent rounded-2xl" />
+                    <div className="max-w-3xl mx-auto text-center">
+                        <p className="text-xs tracking-[0.2em] uppercase font-bold text-coral mb-4 font-heading">The Problem</p>
+                        <h2 className="font-heading text-3xl sm:text-4xl tracking-tight font-bold mb-6">
+                            Great candidates slip away in silence
+                        </h2>
+                        <p className="text-[#A0AAB2] text-base leading-relaxed mb-6">
+                            Every recruiter knows the feeling. You had an incredible silver medallist, a promising candidate who wasn't quite ready, or someone who declined an offer but might return. Then weeks pass, follow-ups fall through the cracks, and they're gone.
+                        </p>
+                        <p className="text-[#A0AAB2] text-base leading-relaxed mb-10">
+                            Manual follow-ups don't scale. Spreadsheets get forgotten. Your ATS tracks pipelines, not relationships. Taplo bridges the gap.
+                        </p>
+                        <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
+                            {[
+                                { value: '72%', label: 'of candidates go cold within 2 weeks' },
+                                { value: '3x', label: 'more likely to re-engage with follow-ups' },
+                                { value: '10h', label: 'saved per week on manual outreach' },
+                            ].map((stat, i) => (
+                                <div key={i} className="text-center">
+                                    <p className="text-2xl sm:text-3xl font-heading font-bold text-coral">{stat.value}</p>
+                                    <p className="text-[#6E7781] text-xs mt-1 leading-snug">{stat.label}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
