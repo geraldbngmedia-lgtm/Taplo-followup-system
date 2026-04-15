@@ -24,9 +24,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const candGdpr = document.getElementById("candGdpr");
   const pushBtn = document.getElementById("pushBtn");
   const pushStatus = document.getElementById("pushStatus");
+  const fuModeDate = document.getElementById("fuModeDate");
+  const fuModeInterval = document.getElementById("fuModeInterval");
+  const fuDateField = document.getElementById("fuDateField");
+  const fuIntervalField = document.getElementById("fuIntervalField");
+  const candFollowupDate = document.getElementById("candFollowupDate");
+  const candFollowupInterval = document.getElementById("candFollowupInterval");
 
   let isSettingsOpen = false;
   let currentTabUrl = "";
+
+  // Follow-up mode toggle
+  fuModeDate.addEventListener("click", () => {
+    fuModeDate.classList.add("fu-active");
+    fuModeInterval.classList.remove("fu-active");
+    fuDateField.classList.remove("hidden");
+    fuIntervalField.classList.add("hidden");
+  });
+  fuModeInterval.addEventListener("click", () => {
+    fuModeInterval.classList.add("fu-active");
+    fuModeDate.classList.remove("fu-active");
+    fuIntervalField.classList.remove("hidden");
+    fuDateField.classList.add("hidden");
+  });
 
   settingsBtn.addEventListener("click", () => {
     isSettingsOpen = !isSettingsOpen;
@@ -128,6 +148,16 @@ document.addEventListener("DOMContentLoaded", () => {
     pushStatus.classList.add("hidden");
 
     chrome.storage.local.get(["taplo_api_url", "taplo_ext_key"], async (result) => {
+      // Calculate follow-up date
+      let followupDate = "";
+      if (!fuIntervalField.classList.contains("hidden") && candFollowupInterval.value) {
+        const d = new Date();
+        d.setDate(d.getDate() + parseInt(candFollowupInterval.value));
+        followupDate = d.toISOString();
+      } else if (!fuDateField.classList.contains("hidden") && candFollowupDate.value) {
+        followupDate = new Date(candFollowupDate.value).toISOString();
+      }
+
       const payload = {
         name: name,
         email: email,
@@ -139,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gdpr_consent: candGdpr.checked,
         tt_profile_url: currentTabUrl,
         tt_candidate_id: extractIdFromUrl(currentTabUrl),
+        followup_date: followupDate || undefined,
       };
 
       try {

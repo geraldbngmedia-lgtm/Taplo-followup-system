@@ -99,6 +99,28 @@
           <label>Notes</label>
           <textarea id="candNotes" placeholder="Any notes about this candidate..." rows="2"></textarea>
         </div>
+        <div class="field">
+          <label>Follow-up</label>
+          <div class="followup-toggle">
+            <button type="button" id="fuModeDate" class="fu-btn fu-active">Specific date</button>
+            <button type="button" id="fuModeInterval" class="fu-btn">Interval</button>
+          </div>
+          <div id="fuDateField">
+            <input type="date" id="candFollowupDate" />
+          </div>
+          <div id="fuIntervalField" class="hidden">
+            <select id="candFollowupInterval">
+              <option value="">Auto (based on group)</option>
+              <option value="3">In 3 days</option>
+              <option value="7">In 1 week</option>
+              <option value="14">In 2 weeks</option>
+              <option value="21">In 3 weeks</option>
+              <option value="30">In 1 month</option>
+              <option value="60">In 2 months</option>
+              <option value="90">In 3 months</option>
+            </select>
+          </div>
+        </div>
         <div class="toggle-row">
           <span>GDPR Consent</span>
           <label class="toggle">

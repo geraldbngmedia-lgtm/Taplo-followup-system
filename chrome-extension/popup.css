@@ -287,3 +287,37 @@ h3 {
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
+
+/* Follow-up toggle */
+.followup-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 8px;
+  background: #12151C;
+  border: 1px solid #2A2E39;
+  border-radius: 8px;
+  padding: 2px;
+}
+.fu-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #6E7781;
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fu-btn:hover {
+  color: #A0AAB2;
+}
+.fu-btn.fu-active {
+  background: #F97B5C;
+  color: #0A0C10;
+}
+.field input[type="date"] {
+  color-scheme: dark;
+}

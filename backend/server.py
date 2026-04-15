@@ -122,6 +122,7 @@ class ExtensionPushCandidate(BaseModel):
     gdpr_consent: bool = True
     tt_candidate_id: Optional[str] = None
     tt_profile_url: Optional[str] = None
+    followup_date: Optional[str] = None
 
 # ========================
 # Auth Endpoints
@@ -251,7 +252,12 @@ def calc_next_followup(group: str, last_contact_str: Optional[str]) -> str:
 def serialize_candidate(doc: dict) -> dict:
     doc["id"] = str(doc.pop("_id"))
     doc["warmth"] = calc_warmth(doc.get("last_contact_date"))
-    doc["next_followup"] = calc_next_followup(doc.get("group", "pipeline"), doc.get("last_contact_date"))
+    # Use custom follow-up date if set, otherwise calculate from group
+    custom_fu = doc.get("custom_followup_date")
+    if custom_fu:
+        doc["next_followup"] = custom_fu
+    else:
+        doc["next_followup"] = calc_next_followup(doc.get("group", "pipeline"), doc.get("last_contact_date"))
     return doc
 
 @api_router.post("/candidates")
@@ -528,6 +534,7 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
         "gdpr_consent": data.gdpr_consent,
         "last_contact_date": datetime.now(timezone.utc).isoformat(),
         "last_followed_up": None,
+        "custom_followup_date": data.followup_date or None,
         "created_by": user_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source": "extension",
