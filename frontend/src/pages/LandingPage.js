@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Lightning, Users, Timer, ShieldCheck, Envelope, ChartLineUp } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import LiveDemoSection from '@/components/LiveDemoSection';
+import DashboardMockup from '@/components/DashboardMockup';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -48,11 +48,12 @@ export default function LandingPage() {
             </nav>
 
             {/* Hero */}
-            <section className="relative pt-32 pb-24 md:pt-44 md:pb-32" data-testid="hero-section">
+            <section className="relative pt-32 pb-12 md:pt-40 md:pb-16" data-testid="hero-section">
                 <div className="hero-glow hero-glow-coral" />
                 <div className="hero-glow hero-glow-blue" />
                 <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-                    <div className="max-w-3xl">
+                    {/* Text + Waitlist */}
+                    <div className="text-center max-w-3xl mx-auto mb-14">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-sm text-[#A0AAB2] mb-8 opacity-0 animate-fade-up">
                             <Lightning weight="fill" className="text-coral w-4 h-4" />
                             <span>AI-powered candidate nurturing</span>
@@ -61,12 +62,12 @@ export default function LandingPage() {
                             Never lose a great<br />
                             <span className="text-coral">candidate</span> again.
                         </h1>
-                        <p className="text-lg md:text-xl text-[#A0AAB2] leading-relaxed max-w-xl mb-10 opacity-0 animate-fade-up stagger-2" data-testid="hero-subheadline">
+                        <p className="text-base md:text-lg text-[#A0AAB2] leading-relaxed max-w-xl mx-auto mb-10 opacity-0 animate-fade-up stagger-2" data-testid="hero-subheadline">
                             Taplo keeps your best talent warm automatically. Personalised follow-ups, smart scheduling, and warmth tracking — so recruiters never lose top candidates to silence.
                         </p>
 
                         {!submitted ? (
-                            <form onSubmit={handleWaitlist} className="flex flex-col sm:flex-row gap-3 max-w-md opacity-0 animate-fade-up stagger-3" data-testid="waitlist-form">
+                            <form onSubmit={handleWaitlist} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto opacity-0 animate-fade-up stagger-3" data-testid="waitlist-form">
                                 <Input
                                     type="email"
                                     placeholder="Enter your work email"
@@ -81,12 +82,17 @@ export default function LandingPage() {
                                 </Button>
                             </form>
                         ) : (
-                            <div className="flex items-center gap-3 text-coral opacity-0 animate-fade-up" data-testid="waitlist-success">
+                            <div className="flex items-center justify-center gap-3 text-coral opacity-0 animate-fade-up" data-testid="waitlist-success">
                                 <ShieldCheck weight="fill" className="w-6 h-6" />
                                 <span className="text-lg font-medium">You're on the list! We'll be in touch soon.</span>
                             </div>
                         )}
                         {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+                    </div>
+
+                    {/* Dashboard Mockup */}
+                    <div className="max-w-5xl mx-auto opacity-0 animate-fade-up stagger-4" data-testid="hero-mockup">
+                        <DashboardMockup />
                     </div>
                 </div>
             </section>
@@ -144,9 +150,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             </section>
-
-            {/* Live Demo */}
-            <LiveDemoSection />
 
             {/* Features */}
             <section className="py-24 md:py-32 border-t border-white/5" data-testid="features-section">
