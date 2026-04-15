@@ -62,7 +62,7 @@ export default function DashboardPipeline() {
 
     // Extract unique roles for the filter dropdown
     const uniqueRoles = useMemo(() => {
-        const roles = [...new Set(candidates.map(c => c.role))].sort();
+        const roles = [...new Set(candidates.map(c => c.role).filter(Boolean))].sort();
         return roles;
     }, [candidates]);
 
