@@ -80,12 +80,15 @@ export default function ExtensionPage() {
 
             {/* How it Works */}
             <div className="bg-surface-card border border-white/5 rounded-2xl p-6 mb-6" data-testid="extension-how-it-works">
-                <h2 className="font-heading text-lg font-semibold text-[#F1F3F5] mb-4">How it works</h2>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-heading text-lg font-semibold text-[#F1F3F5]">How it works</h2>
+                    <a href="/chrome-extension" download className="text-xs text-ocean hover:underline">Download extension files</a>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                        { num: '1', icon: Globe, title: 'Browse Teamtailor', desc: 'Open any candidate profile in your Teamtailor dashboard' },
-                        { num: '2', icon: PuzzlePiece, title: 'Click the Extension', desc: 'Hit the Taplo extension icon in your browser toolbar' },
-                        { num: '3', icon: Lightning, title: 'Candidate Pushed', desc: 'The candidate data is instantly pushed into your Taplo pipeline' },
+                        { num: '1', icon: Globe, title: 'Install Extension', desc: 'Load the Taplo extension into Chrome via chrome://extensions (Developer mode → Load unpacked)' },
+                        { num: '2', icon: PuzzlePiece, title: 'Click on a Candidate', desc: 'Browse Teamtailor, open a candidate profile, then click the Taplo icon in your toolbar' },
+                        { num: '3', icon: Lightning, title: 'Auto-Scraped & Pushed', desc: 'Taplo captures candidate data from the page and pushes it straight into your pipeline' },
                     ].map((step) => (
                         <div key={step.num} className="flex gap-4">
                             <span className="text-2xl font-heading font-bold text-white/10 shrink-0">{step.num}</span>
