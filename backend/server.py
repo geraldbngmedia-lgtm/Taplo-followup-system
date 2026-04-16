@@ -632,96 +632,60 @@ Page text:
 # ========================
 
 resend.api_key = os.environ.get("RESEND_API_KEY", "")
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@taplo.app")
+LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png"
 
-def build_digest_html(user_name, due_candidates, cold_candidates, stats):
+def build_digest_html(user_name, due_candidates):
     due_rows = ""
-    for c in due_candidates[:10]:
+    for c in due_candidates[:15]:
         warmth_color = {"hot": "#F97B5C", "warm": "#F1C40F", "cool": "#4E9BE8", "cold": "#6E7781"}.get(c.get("warmth", "cold"), "#6E7781")
+        role_text = c.get('role', '') or 'No role specified'
         due_rows += f"""
         <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #2A2E39;">
-                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{warmth_color};margin-right:8px;vertical-align:middle;"></span>
-                <strong style="color:#F1F3F5;">{c['name']}</strong>
-                <br><span style="color:#6E7781;font-size:12px;">{c.get('role','')}</span>
+            <td style="padding:12px 16px;border-bottom:1px solid #1A1E27;">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{warmth_color};margin-right:10px;vertical-align:middle;"></span>
+                <strong style="color:#F1F3F5;font-size:14px;">{c['name']}</strong>
+                <br><span style="color:#6E7781;font-size:12px;">{role_text}</span>
             </td>
-            <td style="padding:10px 12px;border-bottom:1px solid #2A2E39;color:#A0AAB2;font-size:13px;">{c.get('email','')}</td>
+            <td style="padding:12px 16px;border-bottom:1px solid #1A1E27;color:#A0AAB2;font-size:13px;text-align:right;">{c.get('email','')}</td>
         </tr>"""
 
-    cold_rows = ""
-    for c in cold_candidates[:5]:
-        cold_rows += f"""
-        <tr>
-            <td style="padding:8px 12px;border-bottom:1px solid #2A2E39;color:#F1F3F5;font-size:13px;">{c['name']}</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #2A2E39;color:#6E7781;font-size:12px;">{c.get('role','')}</td>
-        </tr>"""
+    count = len(due_candidates)
+
+    empty_state = """
+        <tr><td colspan="2" style="padding:24px 16px;text-align:center;">
+            <p style="color:#6E7781;font-size:14px;margin:0;">No candidates due for follow-up today.</p>
+            <p style="color:#6E7781;font-size:12px;margin:4px 0 0;">Your pipeline is looking warm!</p>
+        </td></tr>"""
 
     return f"""
     <div style="background:#0A0C10;padding:0;margin:0;font-family:'Helvetica Neue',Arial,sans-serif;">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0A0C10;">
-            <tr><td style="padding:32px 24px 16px;">
-                <span style="color:#F97B5C;font-size:20px;font-weight:700;letter-spacing:-0.5px;">taplo</span>
+            <tr><td style="padding:32px 24px 24px;">
+                <img src="{LOGO_URL}" alt="Taplo" height="28" style="height:28px;" />
             </td></tr>
             <tr><td style="padding:0 24px 24px;">
-                <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 4px;">Good morning, {user_name}</h1>
-                <p style="color:#6E7781;font-size:14px;margin:0;">Here's your daily nurturing digest</p>
+                <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 6px;">Good morning, {user_name}</h1>
+                <p style="color:#6E7781;font-size:14px;margin:0;">{count} candidate{'s' if count != 1 else ''} due for follow-up today</p>
             </td></tr>
-
-            <!-- Stats -->
-            <tr><td style="padding:0 24px 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:0 24px 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background:#12151C;border-radius:12px;overflow:hidden;">
                     <tr>
-                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
-                            <div style="color:#F1F3F5;font-size:24px;font-weight:700;">{stats.get('total',0)}</div>
-                            <div style="color:#6E7781;font-size:11px;">Total</div>
+                        <td style="padding:14px 16px;border-bottom:1px solid #1A1E27;">
+                            <span style="color:#F97B5C;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Due for Follow-Up</span>
                         </td>
-                        <td width="8"></td>
-                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
-                            <div style="color:#F97B5C;font-size:24px;font-weight:700;">{stats.get('hot',0)}</div>
-                            <div style="color:#6E7781;font-size:11px;">Hot</div>
-                        </td>
-                        <td width="8"></td>
-                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
-                            <div style="color:#F1C40F;font-size:24px;font-weight:700;">{stats.get('warm',0)}</div>
-                            <div style="color:#6E7781;font-size:11px;">Warm</div>
-                        </td>
-                        <td width="8"></td>
-                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
-                            <div style="color:#6E7781;font-size:24px;font-weight:700;">{stats.get('cold',0)}</div>
-                            <div style="color:#6E7781;font-size:11px;">Cold</div>
+                        <td style="padding:14px 16px;border-bottom:1px solid #1A1E27;text-align:right;">
+                            <span style="color:#F97B5C;font-size:12px;font-weight:600;">{count}</span>
                         </td>
                     </tr>
+                    {due_rows if due_rows else empty_state}
                 </table>
             </td></tr>
-
-            <!-- Due for follow-up -->
-            <tr><td style="padding:0 24px 20px;">
-                <h2 style="color:#F97B5C;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">
-                    Due for Follow-Up ({len(due_candidates)})
-                </h2>
-                {f'''<table width="100%" cellpadding="0" cellspacing="0" style="background:#12151C;border-radius:12px;overflow:hidden;">
-                    {due_rows}
-                </table>''' if due_rows else '<p style="color:#6E7781;font-size:13px;">No candidates due today. Nice work!</p>'}
-            </td></tr>
-
-            <!-- Going cold -->
-            {f'''<tr><td style="padding:0 24px 20px;">
-                <h2 style="color:#F1C40F;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">
-                    Going Cold ({len(cold_candidates)})
-                </h2>
-                <table width="100%" cellpadding="0" cellspacing="0" style="background:#12151C;border-radius:12px;overflow:hidden;">
-                    {cold_rows}
-                </table>
-            </td></tr>''' if cold_rows else ''}
-
-            <!-- CTA -->
             <tr><td style="padding:0 24px 32px;text-align:center;">
                 <a href="https://taplo.app/dashboard" style="display:inline-block;background:#F97B5C;color:#0A0C10;font-size:14px;font-weight:600;padding:12px 32px;border-radius:999px;text-decoration:none;">Open Dashboard</a>
             </td></tr>
-
-            <!-- Footer -->
-            <tr><td style="padding:16px 24px 32px;border-top:1px solid #2A2E39;">
-                <p style="color:#6E7781;font-size:11px;margin:0;text-align:center;">Taplo — Candidate Nurturing Tool</p>
+            <tr><td style="padding:16px 24px 32px;border-top:1px solid #1A1E27;">
+                <p style="color:#6E7781;font-size:11px;margin:0;text-align:center;">Taplo — Never lose a great candidate again</p>
             </td></tr>
         </table>
     </div>"""
@@ -733,19 +697,14 @@ async def send_digest_to_user(user_doc):
     candidates = await db.candidates.find({"created_by": user_id, "gdpr_consent": True}).to_list(500)
 
     if not candidates:
-        return False  # Skip users with no candidates
+        return False
 
     now = datetime.now(timezone.utc)
     due = []
-    cold = []
-    stats = {"total": len(candidates), "hot": 0, "warm": 0, "cool": 0, "cold": 0}
 
     for c in candidates:
         c_ser = serialize_candidate({**c})
-        warmth = c_ser.get("warmth", "cold")
-        stats[warmth] = stats.get(warmth, 0) + 1
 
-        # Check if due for follow-up
         next_fu = c_ser.get("next_followup")
         if next_fu:
             try:
@@ -757,15 +716,13 @@ async def send_digest_to_user(user_doc):
             except Exception:
                 pass
 
-        if warmth in ("cool", "cold"):
-            cold.append(c_ser)
-
-    html = build_digest_html(user_doc.get("name", "there"), due, cold, stats)
-    subject = f"Taplo Digest: {len(due)} candidate{'s' if len(due) != 1 else ''} need follow-up today"
+    html = build_digest_html(user_doc.get("name", "there"), due)
+    count = len(due)
+    subject = f"Taplo: {count} candidate{'s' if count != 1 else ''} due for follow-up" if count > 0 else "Taplo: Your pipeline is warm — no follow-ups due"
 
     try:
         params = {
-            "from": SENDER_EMAIL,
+            "from": f"Taplo <{SENDER_EMAIL}>",
             "to": [user_doc["email"]],
             "subject": subject,
             "html": html,
