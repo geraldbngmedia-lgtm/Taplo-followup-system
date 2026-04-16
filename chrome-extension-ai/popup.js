@@ -67,7 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveSettingsBtn.addEventListener("click", () => {
     let url = apiUrlInput.value.trim().replace(/\/$/, "");
-    url = url.replace(/\/api\/.*$/, "").replace(/\/api$/, "");
+    // Strip any path — only keep the origin (protocol + domain)
+    try { url = new URL(url).origin; } catch(e) {}
     const key = extKeyInput.value.trim();
     if (!url || !key) {
       showStatus(settingsStatus, "Both fields are required", "error");
