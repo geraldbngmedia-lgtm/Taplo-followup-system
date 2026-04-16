@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, EnvelopeSimple, Lock, Trash, CheckCircle, Warning } from '@phosphor-icons/react';
+import { User, EnvelopeSimple, Lock, Trash, CheckCircle, Warning, CreditCard, Check } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -122,6 +122,31 @@ export default function ProfilePage() {
                     >
                         {profileSaving ? 'Saving...' : 'Save Changes'}
                     </Button>
+                </div>
+            </div>
+
+            {/* Subscription */}
+            <div className="bg-surface-card border border-white/5 rounded-2xl p-6 mb-6" data-testid="profile-subscription-card">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                        <CreditCard weight="duotone" className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                        <h2 className="font-heading text-lg font-semibold text-[#F1F3F5]">Subscription</h2>
+                        <p className="text-[#6E7781] text-xs">Manage your plan</p>
+                    </div>
+                    <span className="bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-semibold px-3 py-1 rounded-full" data-testid="subscription-badge">Free Plan</span>
+                </div>
+                <div className="bg-surface-base border border-[#2A2E39] rounded-xl p-5">
+                    <p className="text-[#F1F3F5] font-medium text-sm mb-3">You're on the free plan — all features included</p>
+                    <div className="grid grid-cols-2 gap-2">
+                        {['Unlimited candidates', 'AI follow-up drafts', 'Warmth scoring', 'Chrome extension', 'Daily digest email', 'GDPR compliant'].map((f, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <Check weight="bold" className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                                <span className="text-[#A0AAB2] text-xs">{f}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
