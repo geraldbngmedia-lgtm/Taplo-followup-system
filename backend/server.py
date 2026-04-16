@@ -18,6 +18,8 @@ from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+import resend
+import asyncio
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -626,6 +628,228 @@ Page text:
         return {"name": "", "email": "", "phone": "", "error": str(e)}
 
 # ========================
+# Daily Digest Email
+# ========================
+
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+def build_digest_html(user_name, due_candidates, cold_candidates, stats):
+    due_rows = ""
+    for c in due_candidates[:10]:
+        warmth_color = {"hot": "#F97B5C", "warm": "#F1C40F", "cool": "#4E9BE8", "cold": "#6E7781"}.get(c.get("warmth", "cold"), "#6E7781")
+        due_rows += f"""
+        <tr>
+            <td style="padding:10px 12px;border-bottom:1px solid #2A2E39;">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{warmth_color};margin-right:8px;vertical-align:middle;"></span>
+                <strong style="color:#F1F3F5;">{c['name']}</strong>
+                <br><span style="color:#6E7781;font-size:12px;">{c.get('role','')}</span>
+            </td>
+            <td style="padding:10px 12px;border-bottom:1px solid #2A2E39;color:#A0AAB2;font-size:13px;">{c.get('email','')}</td>
+        </tr>"""
+
+    cold_rows = ""
+    for c in cold_candidates[:5]:
+        cold_rows += f"""
+        <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #2A2E39;color:#F1F3F5;font-size:13px;">{c['name']}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #2A2E39;color:#6E7781;font-size:12px;">{c.get('role','')}</td>
+        </tr>"""
+
+    return f"""
+    <div style="background:#0A0C10;padding:0;margin:0;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0A0C10;">
+            <tr><td style="padding:32px 24px 16px;">
+                <span style="color:#F97B5C;font-size:20px;font-weight:700;letter-spacing:-0.5px;">taplo</span>
+            </td></tr>
+            <tr><td style="padding:0 24px 24px;">
+                <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 4px;">Good morning, {user_name}</h1>
+                <p style="color:#6E7781;font-size:14px;margin:0;">Here's your daily nurturing digest</p>
+            </td></tr>
+
+            <!-- Stats -->
+            <tr><td style="padding:0 24px 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
+                            <div style="color:#F1F3F5;font-size:24px;font-weight:700;">{stats.get('total',0)}</div>
+                            <div style="color:#6E7781;font-size:11px;">Total</div>
+                        </td>
+                        <td width="8"></td>
+                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
+                            <div style="color:#F97B5C;font-size:24px;font-weight:700;">{stats.get('hot',0)}</div>
+                            <div style="color:#6E7781;font-size:11px;">Hot</div>
+                        </td>
+                        <td width="8"></td>
+                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
+                            <div style="color:#F1C40F;font-size:24px;font-weight:700;">{stats.get('warm',0)}</div>
+                            <div style="color:#6E7781;font-size:11px;">Warm</div>
+                        </td>
+                        <td width="8"></td>
+                        <td style="background:#12151C;border-radius:12px;padding:16px;text-align:center;width:25%;">
+                            <div style="color:#6E7781;font-size:24px;font-weight:700;">{stats.get('cold',0)}</div>
+                            <div style="color:#6E7781;font-size:11px;">Cold</div>
+                        </td>
+                    </tr>
+                </table>
+            </td></tr>
+
+            <!-- Due for follow-up -->
+            <tr><td style="padding:0 24px 20px;">
+                <h2 style="color:#F97B5C;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">
+                    Due for Follow-Up ({len(due_candidates)})
+                </h2>
+                {f'''<table width="100%" cellpadding="0" cellspacing="0" style="background:#12151C;border-radius:12px;overflow:hidden;">
+                    {due_rows}
+                </table>''' if due_rows else '<p style="color:#6E7781;font-size:13px;">No candidates due today. Nice work!</p>'}
+            </td></tr>
+
+            <!-- Going cold -->
+            {f'''<tr><td style="padding:0 24px 20px;">
+                <h2 style="color:#F1C40F;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">
+                    Going Cold ({len(cold_candidates)})
+                </h2>
+                <table width="100%" cellpadding="0" cellspacing="0" style="background:#12151C;border-radius:12px;overflow:hidden;">
+                    {cold_rows}
+                </table>
+            </td></tr>''' if cold_rows else ''}
+
+            <!-- CTA -->
+            <tr><td style="padding:0 24px 32px;text-align:center;">
+                <a href="https://taplo.app/dashboard" style="display:inline-block;background:#F97B5C;color:#0A0C10;font-size:14px;font-weight:600;padding:12px 32px;border-radius:999px;text-decoration:none;">Open Dashboard</a>
+            </td></tr>
+
+            <!-- Footer -->
+            <tr><td style="padding:16px 24px 32px;border-top:1px solid #2A2E39;">
+                <p style="color:#6E7781;font-size:11px;margin:0;text-align:center;">Taplo — Candidate Nurturing Tool</p>
+            </td></tr>
+        </table>
+    </div>"""
+
+
+async def send_digest_to_user(user_doc):
+    """Build and send digest email for a single user."""
+    user_id = str(user_doc["_id"])
+    candidates = await db.candidates.find({"created_by": user_id, "gdpr_consent": True}).to_list(500)
+
+    if not candidates:
+        return False  # Skip users with no candidates
+
+    now = datetime.now(timezone.utc)
+    due = []
+    cold = []
+    stats = {"total": len(candidates), "hot": 0, "warm": 0, "cool": 0, "cold": 0}
+
+    for c in candidates:
+        c_ser = serialize_candidate({**c})
+        warmth = c_ser.get("warmth", "cold")
+        stats[warmth] = stats.get(warmth, 0) + 1
+
+        # Check if due for follow-up
+        next_fu = c_ser.get("next_followup")
+        if next_fu:
+            try:
+                fu_date = datetime.fromisoformat(next_fu.replace("Z", "+00:00"))
+                if fu_date.tzinfo is None:
+                    fu_date = fu_date.replace(tzinfo=timezone.utc)
+                if fu_date.date() <= now.date():
+                    due.append(c_ser)
+            except Exception:
+                pass
+
+        if warmth in ("cool", "cold"):
+            cold.append(c_ser)
+
+    html = build_digest_html(user_doc.get("name", "there"), due, cold, stats)
+    subject = f"Taplo Digest: {len(due)} candidate{'s' if len(due) != 1 else ''} need follow-up today"
+
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [user_doc["email"]],
+            "subject": subject,
+            "html": html,
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Digest sent to {user_doc['email']}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send digest to {user_doc['email']}: {e}")
+        return False
+
+
+async def send_all_digests():
+    """Send digest emails to all users."""
+    users = await db.users.find({}).to_list(1000)
+    sent = 0
+    failed = 0
+    for user in users:
+        try:
+            result = await send_digest_to_user(user)
+            if result:
+                sent += 1
+        except Exception as e:
+            logger.error(f"Digest error for {user.get('email')}: {e}")
+            failed += 1
+    logger.info(f"Daily digest complete: {sent} sent, {failed} failed")
+    # Record last digest run
+    await db.digest_log.insert_one({
+        "run_at": datetime.now(timezone.utc).isoformat(),
+        "sent": sent,
+        "failed": failed,
+    })
+    return {"sent": sent, "failed": failed}
+
+
+async def digest_scheduler():
+    """Background task that checks every hour if digest should be sent."""
+    while True:
+        try:
+            now = datetime.now(timezone.utc)
+            # Send at 7 AM UTC (8 AM CET)
+            if now.hour == 7:
+                last_run = await db.digest_log.find_one(sort=[("run_at", -1)])
+                should_run = True
+                if last_run:
+                    try:
+                        last = datetime.fromisoformat(last_run["run_at"].replace("Z", "+00:00"))
+                        if last.tzinfo is None:
+                            last = last.replace(tzinfo=timezone.utc)
+                        if (now - last).total_seconds() < 3600 * 20:
+                            should_run = False
+                    except Exception:
+                        pass
+                if should_run:
+                    logger.info("Running daily digest...")
+                    await send_all_digests()
+        except Exception as e:
+            logger.error(f"Digest scheduler error: {e}")
+        await asyncio.sleep(3600)  # Check every hour
+
+
+@api_router.post("/digest/send-now")
+async def trigger_digest(request: Request):
+    """Manually trigger digest for the current user (for testing)."""
+    user = await get_current_user(request)
+    user_doc = await db.users.find_one({"_id": ObjectId(user["_id"])})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    result = await send_digest_to_user(user_doc)
+    if result:
+        return {"message": f"Digest sent to {user_doc['email']}"}
+    return {"message": "No candidates to include in digest"}
+
+
+@api_router.post("/digest/send-all")
+async def trigger_all_digests(request: Request):
+    """Admin: manually trigger digest for all users."""
+    user = await get_current_user(request)
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    result = await send_all_digests()
+    return {"message": "Digests sent", "results": result}
+
+# ========================
 # Root
 # ========================
 
@@ -675,6 +899,9 @@ async def startup():
     os.makedirs("/app/memory", exist_ok=True)
     with open("/app/memory/test_credentials.md", "w") as f:
         f.write(f"# Test Credentials\n\n## Admin\n- Email: {admin_email}\n- Password: {admin_password}\n- Role: admin\n\n## Auth Endpoints\n- POST /api/auth/register\n- POST /api/auth/login\n- POST /api/auth/logout\n- GET /api/auth/me\n- POST /api/auth/refresh\n")
+    # Start digest scheduler
+    asyncio.create_task(digest_scheduler())
+    logger.info("Digest scheduler started (sends at 7 AM UTC daily)")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

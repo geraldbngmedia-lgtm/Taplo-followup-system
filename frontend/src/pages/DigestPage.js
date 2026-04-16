@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarDot, Warning, Fire, Snowflake, TrendUp, Users } from '@phosphor-icons/react';
+import { CalendarDot, Warning, Fire, Snowflake, TrendUp, Users, EnvelopeSimple } from '@phosphor-icons/react';
 import { WarmthBadge } from '@/components/WarmthIndicator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,8 @@ const groupLabels = {
 export default function DigestPage() {
     const [digest, setDigest] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [sending, setSending] = useState(false);
+    const [sendResult, setSendResult] = useState(null);
 
     useEffect(() => {
         const fetch = async () => {
@@ -42,12 +44,42 @@ export default function DigestPage() {
         return <p className="text-[#6E7781] text-center py-20">Failed to load digest.</p>;
     }
 
+    const handleSendDigest = async () => {
+        setSending(true);
+        setSendResult(null);
+        try {
+            const { data } = await axios.post(`${API}/digest/send-now`, {});
+            setSendResult({ success: true, message: data.message });
+        } catch (err) {
+            setSendResult({ success: false, message: err.response?.data?.detail || 'Failed to send' });
+        }
+        setSending(false);
+    };
+
     return (
         <div data-testid="digest-page">
-            <div className="mb-8">
-                <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[#F1F3F5]">Daily Digest</h1>
-                <p className="text-[#6E7781] text-sm mt-1">{new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[#F1F3F5]">Daily Digest</h1>
+                    <p className="text-[#6E7781] text-sm mt-1">{new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <Button
+                        onClick={handleSendDigest}
+                        disabled={sending}
+                        className="bg-coral hover:bg-coral-hover text-surface-base rounded-full font-medium"
+                        data-testid="send-digest-button"
+                    >
+                        <EnvelopeSimple className={`w-4 h-4 mr-2 ${sending ? 'animate-pulse' : ''}`} />
+                        {sending ? 'Sending...' : 'Email Me Digest'}
+                    </Button>
+                </div>
             </div>
+            {sendResult && (
+                <div className={`mb-6 p-3 rounded-xl text-sm ${sendResult.success ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-400/10 border border-red-400/20 text-red-400'}`} data-testid="send-digest-result">
+                    {sendResult.message}
+                </div>
+            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
