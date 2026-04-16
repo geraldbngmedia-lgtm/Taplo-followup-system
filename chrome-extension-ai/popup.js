@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const candFollowupInterval = document.getElementById("candFollowupInterval");
   const extractingState = document.getElementById("extractingState");
   const badgeText = document.getElementById("badgeText");
+  const scrapedBadge = document.getElementById("scrapedBadge");
 
   let isSettingsOpen = false;
   let currentTabUrl = "";
@@ -91,77 +92,92 @@ document.addEventListener("DOMContentLoaded", () => {
     el.classList.remove("hidden");
   }
 
+  // AI extraction call
+  function callAIExtract(apiUrl, extKey, pageText, pageUrl) {
+    return fetch(apiUrl + "/api/extension/extract", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Extension-Key": extKey,
+      },
+      body: JSON.stringify({
+        page_text: pageText,
+        page_url: pageUrl,
+      }),
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+
   function init() {
-    chrome.storage.local.get(["taplo_api_url", "taplo_ext_key"], (result) => {
+    chrome.storage.local.get(["taplo_api_url", "taplo_ext_key"], function(result) {
       if (!result.taplo_api_url || !result.taplo_ext_key) {
         notConfigured.classList.remove("hidden");
         candidateForm.classList.add("hidden");
         return;
       }
+
+      var apiUrl = result.taplo_api_url;
+      var extKey = result.taplo_ext_key;
+
       notConfigured.classList.add("hidden");
       candidateForm.classList.remove("hidden");
-
-      // Show extracting state
       extractingState.classList.remove("hidden");
+      scrapedBadge.classList.add("hidden");
 
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
+      chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        var tab = tabs[0];
         currentTabUrl = tab ? tab.url : "";
 
         // Detect platform for badge
-        if (badgeText) {
-          if (currentTabUrl.includes("linkedin.com")) badgeText.textContent = "AI extracted from LinkedIn";
-          else if (currentTabUrl.includes("teamtailor.com")) badgeText.textContent = "AI extracted from Teamtailor";
-          else {
-            // Try to detect ATS from URL
-            const host = new URL(currentTabUrl).hostname;
+        if (currentTabUrl.includes("linkedin.com")) {
+          badgeText.textContent = "AI extracted from LinkedIn";
+        } else if (currentTabUrl.includes("teamtailor.com")) {
+          badgeText.textContent = "AI extracted from Teamtailor";
+        } else {
+          try {
+            var host = new URL(currentTabUrl).hostname;
             badgeText.textContent = "AI extracted from " + host;
+          } catch(e) {
+            badgeText.textContent = "AI extracted";
           }
         }
 
         // Get page text from content script
-        chrome.tabs.sendMessage(tab.id, { action: "scrape" }, async (response) => {
+        chrome.tabs.sendMessage(tab.id, { action: "scrape" }, function(response) {
           if (chrome.runtime.lastError || !response || !response.success) {
             extractingState.classList.add("hidden");
-            console.log("Content script not ready:", chrome.runtime.lastError?.message);
+            scrapedBadge.classList.remove("hidden");
+            showStatus(pushStatus, "Could not read page — fill in manually", "info");
             return;
           }
 
-          // Send page text to backend AI for extraction
-          try {
-            const res = await fetch(result.taplo_api_url + "/api/extension/extract", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-Extension-Key": result.taplo_ext_key,
-              },
-              body: JSON.stringify({
-                page_text: response.data.page_text,
-                page_url: response.data.page_url,
-              }),
+          // Send to AI — using .then() instead of async/await
+          callAIExtract(apiUrl, extKey, response.data.page_text, response.data.page_url)
+            .then(function(data) {
+              candName.value = data.name || "";
+              candEmail.value = data.email || "";
+              candPhone.value = data.phone || "";
+              extractingState.classList.add("hidden");
+              scrapedBadge.classList.remove("hidden");
+            })
+            .catch(function(err) {
+              console.error("AI extraction failed:", err);
+              extractingState.classList.add("hidden");
+              scrapedBadge.classList.remove("hidden");
+              showStatus(pushStatus, "AI extraction failed — fill in manually", "info");
             });
-
-            if (!res.ok) throw new Error("HTTP " + res.status);
-
-            const data = await res.json();
-            candName.value = data.name || "";
-            candEmail.value = data.email || "";
-            candPhone.value = data.phone || "";
-          } catch (err) {
-            console.error("AI extraction failed:", err);
-            showStatus(pushStatus, "AI extraction failed — fill in manually", "info");
-          }
-
-          extractingState.classList.add("hidden");
         });
       });
     });
   }
 
   // Push to Taplo
-  pushBtn.addEventListener("click", async () => {
-    const name = candName.value.trim();
-    const email = candEmail.value.trim();
+  pushBtn.addEventListener("click", function() {
+    var name = candName.value.trim();
+    var email = candEmail.value.trim();
 
     if (!name || !email) {
       showStatus(pushStatus, "Name and email are required", "error");
@@ -172,17 +188,17 @@ document.addEventListener("DOMContentLoaded", () => {
     pushBtn.innerHTML = '<span class="spinner"></span> Pushing...';
     pushStatus.classList.add("hidden");
 
-    chrome.storage.local.get(["taplo_api_url", "taplo_ext_key"], async (result) => {
-      let followupDate = "";
+    chrome.storage.local.get(["taplo_api_url", "taplo_ext_key"], function(result) {
+      var followupDate = "";
       if (!fuIntervalField.classList.contains("hidden") && candFollowupInterval.value) {
-        const d = new Date();
+        var d = new Date();
         d.setDate(d.getDate() + parseInt(candFollowupInterval.value));
         followupDate = d.toISOString();
       } else if (!fuDateField.classList.contains("hidden") && candFollowupDate.value) {
         followupDate = new Date(candFollowupDate.value).toISOString();
       }
 
-      const payload = {
+      var payload = {
         name: name,
         email: email,
         role: candRole.value.trim(),
@@ -193,41 +209,41 @@ document.addEventListener("DOMContentLoaded", () => {
         gdpr_consent: candGdpr.checked,
         tt_profile_url: currentTabUrl,
         tt_candidate_id: "",
-        followup_date: followupDate || undefined,
       };
+      if (followupDate) payload.followup_date = followupDate;
 
-      try {
-        const response = await fetch(result.taplo_api_url + "/api/extension/push-candidate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Extension-Key": result.taplo_ext_key,
-          },
-          body: JSON.stringify(payload),
-        });
-
+      fetch(result.taplo_api_url + "/api/extension/push-candidate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Extension-Key": result.taplo_ext_key,
+        },
+        body: JSON.stringify(payload),
+      })
+      .then(function(response) {
         if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.detail || "HTTP " + response.status);
+          return response.json().then(function(err) {
+            throw new Error(err.detail || "HTTP " + response.status);
+          });
         }
-
-        const data = await response.json();
-        const action = data.status === "created" ? "added to" : "updated in";
+        return response.json();
+      })
+      .then(function(data) {
+        var action = data.status === "created" ? "added to" : "updated in";
         showStatus(pushStatus, name + " " + action + " your Taplo pipeline!", "success");
-
         pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Pushed!';
-
-        setTimeout(() => {
+        setTimeout(function() {
           pushBtn.disabled = false;
           pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Push to Taplo';
         }, 3000);
-      } catch (error) {
+      })
+      .catch(function(error) {
         showStatus(pushStatus, "Failed: " + error.message, "error");
         pushBtn.disabled = false;
         pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Push to Taplo';
-      }
+      });
     });
   });
 
-  loadSettings(() => init());
+  loadSettings(function() { init(); });
 });
