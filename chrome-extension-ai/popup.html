@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taplo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="16" height="8" rx="2" fill="#F97B5C"/>
+          <path d="M6 14L2 18V14H6Z" fill="#4E9BE8"/>
+          <path d="M6 14H14L10 20H2L6 14Z" fill="#4E9BE8"/>
+        </svg>
+        <span class="header-title">Taplo</span>
+        <span class="ai-badge">AI</span>
+      </div>
+      <button id="settingsBtn" class="icon-btn" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="panel hidden">
+      <h3>Extension Settings</h3>
+      <div class="field">
+        <label>Taplo Backend URL</label>
+        <input type="url" id="apiUrl" placeholder="https://your-domain.com" />
+        <span class="hint">Your Taplo app URL (without /api)</span>
+      </div>
+      <div class="field">
+        <label>Extension API Key</label>
+        <input type="password" id="extKey" placeholder="taplo_ext_..." />
+        <span class="hint">Found in Dashboard &rarr; Extension page</span>
+      </div>
+      <button id="saveSettings" class="btn btn-primary">Save Settings</button>
+      <div id="settingsStatus" class="status hidden"></div>
+    </div>
+
+    <!-- Main Panel -->
+    <div id="mainPanel" class="panel">
+      <!-- Not configured -->
+      <div id="notConfigured" class="empty-state hidden">
+        <div class="empty-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6E7781" stroke-width="1.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <p class="empty-title">Not configured</p>
+        <p class="empty-desc">Click the gear icon to add your Taplo URL and extension key.</p>
+      </div>
+
+      <!-- Candidate Form -->
+      <div id="candidateForm" class="hidden">
+        <!-- Extracting state -->
+        <div id="extractingState" class="extracting-state hidden">
+          <div class="extracting-spinner"></div>
+          <span>AI is reading the page...</span>
+        </div>
+
+        <div class="scraped-badge" id="scrapedBadge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E9BE8" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="badgeText">AI extracted</span>
+        </div>
+
+        <div class="field">
+          <label>Name <span class="required">*</span></label>
+          <input type="text" id="candName" placeholder="Candidate name" />
+        </div>
+        <div class="field">
+          <label>Email <span class="required">*</span></label>
+          <input type="email" id="candEmail" placeholder="candidate@email.com" />
+        </div>
+        <div class="field">
+          <label>Role</label>
+          <input type="text" id="candRole" placeholder="e.g. Senior Frontend Developer" />
+        </div>
+        <div class="row">
+          <div class="field flex-1">
+            <label>Group <span class="required">*</span></label>
+            <select id="candGroup">
+              <option value="pipeline">Pipeline</option>
+              <option value="silver_medallist">Silver Medallist</option>
+              <option value="not_ready_yet">Not Ready Yet</option>
+              <option value="offer_declined">Offer Declined</option>
+            </select>
+          </div>
+          <div class="field flex-1">
+            <label>Phone</label>
+            <input type="text" id="candPhone" placeholder="+44..." />
+          </div>
+        </div>
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="candNotes" placeholder="Any notes about this candidate..." rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label>Follow-up</label>
+          <div class="followup-toggle">
+            <button type="button" id="fuModeDate" class="fu-btn fu-active">Specific date</button>
+            <button type="button" id="fuModeInterval" class="fu-btn">Interval</button>
+          </div>
+          <div id="fuDateField">
+            <input type="date" id="candFollowupDate" />
+          </div>
+          <div id="fuIntervalField" class="hidden">
+            <select id="candFollowupInterval">
+              <option value="">Auto (based on group)</option>
+              <option value="3">In 3 days</option>
+              <option value="7">In 1 week</option>
+              <option value="14">In 2 weeks</option>
+              <option value="21">In 3 weeks</option>
+              <option value="30">In 1 month</option>
+              <option value="60">In 2 months</option>
+              <option value="90">In 3 months</option>
+            </select>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <span>GDPR Consent</span>
+          <label class="toggle">
+            <input type="checkbox" id="candGdpr" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <button id="pushBtn" class="btn btn-primary btn-push">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          Push to Taplo
+        </button>
+
+        <div id="pushStatus" class="status hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

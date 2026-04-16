@@ -565,6 +565,66 @@ async def extension_recent_pushes(request: Request):
         results.append(d)
     return results
 
+class ExtractPageRequest(BaseModel):
+    page_text: str
+    page_url: Optional[str] = ""
+
+@api_router.post("/extension/extract")
+async def extension_extract(data: ExtractPageRequest, request: Request):
+    """Use AI to extract candidate info from page text. Auth via X-Extension-Key."""
+    ext_key = request.headers.get("X-Extension-Key", "")
+    if not ext_key:
+        raise HTTPException(status_code=401, detail="Missing extension key")
+    setting = await db.extension_settings.find_one({"ext_key": ext_key})
+    if not setting:
+        raise HTTPException(status_code=401, detail="Invalid extension key")
+
+    # Truncate page text to avoid huge token usage
+    page_text = data.page_text[:4000]
+
+    prompt = f"""Extract the candidate's contact information from this page text. Return ONLY a JSON object with these fields:
+- "name": the person's full name (first and last name)
+- "email": their email address
+- "phone": their phone number
+
+If a field is not found, use an empty string. Do NOT include any explanation, just the JSON.
+
+Page URL: {data.page_url}
+
+Page text:
+{page_text}"""
+
+    try:
+        llm_key = os.environ.get("EMERGENT_LLM_KEY")
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=f"extract-{uuid.uuid4().hex[:8]}",
+            system_message="You extract structured data from text. Always respond with valid JSON only, no markdown, no explanation."
+        )
+        chat.with_model("openai", "gpt-5.2")
+        message = UserMessage(text=prompt)
+        response_text = await chat.send_message(message)
+
+        # Parse the JSON response
+        import json as json_module
+        # Strip markdown code fences if present
+        cleaned = response_text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[-1]
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
+
+        result = json_module.loads(cleaned)
+        return {
+            "name": result.get("name", ""),
+            "email": result.get("email", ""),
+            "phone": result.get("phone", ""),
+        }
+    except Exception as e:
+        logger.error(f"AI extraction error: {e}")
+        return {"name": "", "email": "", "phone": "", "error": str(e)}
+
 # ========================
 # Root
 # ========================
