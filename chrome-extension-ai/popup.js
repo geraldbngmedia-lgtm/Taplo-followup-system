@@ -150,7 +150,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if (chrome.runtime.lastError || !response || !response.success) {
             extractingState.classList.add("hidden");
             scrapedBadge.classList.remove("hidden");
-            showStatus(pushStatus, "Could not read page — fill in manually", "info");
+            var errMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : "No response";
+            showStatus(pushStatus, "Page read error: " + errMsg + " — refresh the page and try again", "error");
             return;
           }
 
@@ -167,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
               console.error("AI extraction failed:", err);
               extractingState.classList.add("hidden");
               scrapedBadge.classList.remove("hidden");
-              showStatus(pushStatus, "AI extraction failed — fill in manually", "info");
+              showStatus(pushStatus, "Extract error: " + err.message + " | URL: " + apiUrl, "error");
             });
         });
       });
