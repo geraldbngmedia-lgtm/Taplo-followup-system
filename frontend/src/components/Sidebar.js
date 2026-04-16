@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, CalendarDots, ChartBar, SignOut, House, PuzzlePiece } from '@phosphor-icons/react';
+import { Users, CalendarDots, ChartBar, SignOut, House, PuzzlePiece, UserCircle } from '@phosphor-icons/react';
 
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
 
@@ -45,15 +45,15 @@ export default function Sidebar() {
             </nav>
 
             <div className="p-4 border-t border-[#2A2E39]">
-                <div className="flex items-center gap-3 px-4 py-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-ocean/20 flex items-center justify-center text-ocean text-sm font-bold font-heading">
+                <Link to="/dashboard/profile" className={`flex items-center gap-3 px-4 py-2 mb-2 rounded-lg transition-all ${location.pathname === '/dashboard/profile' ? 'bg-coral/10' : 'hover:bg-white/5'}`} data-testid="sidebar-profile-link">
+                    <div className={`w-8 h-8 rounded-full bg-ocean/20 flex items-center justify-center text-sm font-bold font-heading ${location.pathname === '/dashboard/profile' ? 'text-coral' : 'text-ocean'}`}>
                         {user?.name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[#F1F3F5] truncate">{user?.name}</p>
                         <p className="text-xs text-[#6E7781] truncate">{user?.email}</p>
                     </div>
-                </div>
+                </Link>
                 <button
                     onClick={logout}
                     className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-[#6E7781] hover:text-red-400 hover:bg-red-400/5 transition-all w-full"

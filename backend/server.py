@@ -113,6 +113,17 @@ class FollowUpRequest(BaseModel):
     candidate_id: str
     custom_context: Optional[str] = ""
 
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+class DeleteAccount(BaseModel):
+    password: str
+
 class ExtensionPushCandidate(BaseModel):
     name: str
     email: str
@@ -194,6 +205,55 @@ async def refresh(request: Request, response: Response):
         return {"message": "Token refreshed"}
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+# ========================
+# Profile Management
+# ========================
+
+@api_router.patch("/auth/profile")
+async def update_profile(data: ProfileUpdate, request: Request):
+    user = await get_current_user(request)
+    update_fields = {}
+    if data.name and data.name.strip():
+        update_fields["name"] = data.name.strip()
+    if data.email and data.email.strip():
+        new_email = data.email.lower().strip()
+        if new_email != user["email"]:
+            existing = await db.users.find_one({"email": new_email})
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already in use")
+            update_fields["email"] = new_email
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    await db.users.update_one({"_id": ObjectId(user["_id"])}, {"$set": update_fields})
+    updated = await db.users.find_one({"_id": ObjectId(user["_id"])})
+    updated["_id"] = str(updated["_id"])
+    updated.pop("password_hash", None)
+    return updated
+
+@api_router.post("/auth/change-password")
+async def change_password(data: PasswordChange, request: Request):
+    user = await get_current_user(request)
+    user_doc = await db.users.find_one({"_id": ObjectId(user["_id"])})
+    if not verify_password(data.current_password, user_doc["password_hash"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    new_hash = hash_password(data.new_password)
+    await db.users.update_one({"_id": ObjectId(user["_id"])}, {"$set": {"password_hash": new_hash}})
+    return {"message": "Password changed successfully"}
+
+@api_router.delete("/auth/delete-account")
+async def delete_account(data: DeleteAccount, request: Request):
+    user = await get_current_user(request)
+    user_doc = await db.users.find_one({"_id": ObjectId(user["_id"])})
+    if not verify_password(data.password, user_doc["password_hash"]):
+        raise HTTPException(status_code=400, detail="Password is incorrect")
+    # Delete all user data
+    await db.candidates.delete_many({"created_by": user["_id"]})
+    await db.extension_settings.delete_many({"user_id": user["_id"]})
+    await db.users.delete_one({"_id": ObjectId(user["_id"])})
+    return {"message": "Account deleted"}
 
 # ========================
 # Waitlist

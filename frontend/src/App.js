@@ -8,6 +8,7 @@ import DashboardPipeline from "@/pages/DashboardPipeline";
 import DigestPage from "@/pages/DigestPage";
 import StatsPage from "@/pages/StatsPage";
 import ExtensionPage from "@/pages/ExtensionPage";
+import ProfilePage from "@/pages/ProfilePage";
 import Sidebar from "@/components/Sidebar";
 
 function ProtectedRoute() {
@@ -63,6 +64,7 @@ function App() {
                         <Route path="/dashboard/digest" element={<DigestPage />} />
                         <Route path="/dashboard/stats" element={<StatsPage />} />
                         <Route path="/dashboard/extension" element={<ExtensionPage />} />
+                        <Route path="/dashboard/profile" element={<ProfilePage />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
