@@ -2,8 +2,8 @@ import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { WarmthDot, WarmthBadge } from '@/components/WarmthIndicator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PaperPlaneTilt, Trash, CalendarDot, Briefcase, PuzzlePiece } from '@phosphor-icons/react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { PaperPlaneTilt, Trash, CalendarDot, Briefcase, PuzzlePiece, PencilSimple } from '@phosphor-icons/react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DotsThreeVertical } from '@phosphor-icons/react';
 
 const groupLabels = {
@@ -41,7 +41,7 @@ function safeNextFollowUp(dateStr) {
     }
 }
 
-export default function CandidateCard({ candidate, index, onFollowUp, onDelete }) {
+export default function CandidateCard({ candidate, index, onFollowUp, onDelete, onEdit }) {
     const c = candidate;
     const isOverdue = c.next_followup && new Date(c.next_followup) <= new Date();
 
@@ -67,6 +67,10 @@ export default function CandidateCard({ candidate, index, onFollowUp, onDelete }
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5]">
+                        <DropdownMenuItem onClick={onEdit} className="focus:bg-white/5 focus:text-[#F1F3F5]" data-testid={`candidate-edit-${c.id}`}>
+                            <PencilSimple className="w-4 h-4 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-[#2A2E39]" />
                         <DropdownMenuItem onClick={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-400/5" data-testid={`candidate-delete-${c.id}`}>
                             <Trash className="w-4 h-4 mr-2" /> Remove
                         </DropdownMenuItem>

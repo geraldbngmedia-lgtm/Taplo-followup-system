@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Link } from 'react-router-dom';
 import CandidateCard from '@/components/CandidateCard';
 import AddCandidateDialog from '@/components/AddCandidateDialog';
+import EditCandidateDialog from '@/components/EditCandidateDialog';
 import FollowUpDialog from '@/components/FollowUpDialog';
 import { API } from '@/config';
 import axios from 'axios';
@@ -27,6 +28,7 @@ export default function DashboardPipeline() {
     const [search, setSearch] = useState('');
     const [addOpen, setAddOpen] = useState(false);
     const [followUpCandidate, setFollowUpCandidate] = useState(null);
+    const [editCandidate, setEditCandidate] = useState(null);
     const [roleFilter, setRoleFilter] = useState('all');
     const [warmthFilter, setWarmthFilter] = useState('all');
 
@@ -45,6 +47,10 @@ export default function DashboardPipeline() {
 
     const handleCandidateAdded = (newCandidate) => {
         setCandidates(prev => [newCandidate, ...prev]);
+    };
+
+    const handleCandidateUpdated = (updated) => {
+        setCandidates(prev => prev.map(c => c.id === updated.id ? updated : c));
     };
 
     const handleDelete = async (id) => {
@@ -264,6 +270,7 @@ export default function DashboardPipeline() {
                                         index={i}
                                         onFollowUp={() => setFollowUpCandidate(c)}
                                         onDelete={() => handleDelete(c.id)}
+                                        onEdit={() => setEditCandidate(c)}
                                     />
                                 ))}
                             </div>
@@ -273,6 +280,12 @@ export default function DashboardPipeline() {
             </Tabs>
 
             <AddCandidateDialog open={addOpen} onOpenChange={setAddOpen} onCandidateAdded={handleCandidateAdded} />
+            <EditCandidateDialog
+                open={!!editCandidate}
+                onOpenChange={(v) => { if (!v) setEditCandidate(null); }}
+                candidate={editCandidate}
+                onCandidateUpdated={handleCandidateUpdated}
+            />
             <FollowUpDialog
                 open={!!followUpCandidate}
                 onOpenChange={(v) => { if (!v) setFollowUpCandidate(null); }}
