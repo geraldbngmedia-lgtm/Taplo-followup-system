@@ -55,6 +55,14 @@
 ## Bug Fixes
 - [x] **LinkedIn empty-email duplication bug** (2026-04-20) — `POST /api/extension/push-candidate` now skips the email dedup check when the incoming email is blank. Previously every LinkedIn push (no email exposed) matched the first empty-email candidate and overwrote it. Candidates with email are still deduped per-user as before. Verified with backend curl tests.
 
+## Feature: Fixed Role Categories (2026-04-20)
+- 13 predefined role categories replacing free-text roles: Backend Developer, Frontend Developer, Fullstack Developer, Architect, Infrastructure, DevOps, Data, Automation, Manufacturing, Sales, Manager, Project Leader/Manager, Economic.
+- Chrome Extension (V1 DOM + V2 AI): "Role" text input replaced with a required Role Category `<select>`. Users pick the category instead of the extension auto-filling it. Push validation blocks submit until a category is chosen.
+- Dashboard `All Roles` filter lists all 13 categories (merged with any legacy free-text roles for backwards compatibility).
+- Add/Edit Candidate dialogs now use the same category dropdown; Edit dialog preserves any legacy free-text role via a "(legacy)" option so old records stay editable.
+- Pipeline search now also matches `notes` content (so searching "Python" surfaces candidates whose notes contain programming languages). Placeholder updated to "Search name, role, email, or notes…".
+- Shared constant at `frontend/src/constants/roleCategories.js`.
+
 ## Prioritized Backlog
 ### P0 (Next)
 - Gmail/Outlook integration for actual email sending

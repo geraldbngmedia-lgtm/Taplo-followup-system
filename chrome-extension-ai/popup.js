@@ -180,9 +180,14 @@ document.addEventListener("DOMContentLoaded", () => {
   pushBtn.addEventListener("click", function() {
     var name = candName.value.trim();
     var email = candEmail.value.trim();
+    var role = candRole.value.trim();
 
-    if (!name || !email) {
-      showStatus(pushStatus, "Name and email are required", "error");
+    if (!name) {
+      showStatus(pushStatus, "Name is required", "error");
+      return;
+    }
+    if (!role) {
+      showStatus(pushStatus, "Please pick a role category", "error");
       return;
     }
 
@@ -203,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
       var payload = {
         name: name,
         email: email,
-        role: candRole.value.trim(),
+        role: role,
         phone: candPhone.value.trim(),
         stage: candGroup.value,
         notes: candNotes.value.trim(),

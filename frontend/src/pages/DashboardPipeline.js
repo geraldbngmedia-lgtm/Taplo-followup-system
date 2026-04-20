@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, MagnifyingGlass, Funnel, X, PuzzlePiece, Lightning, Briefcase } from '@phosphor-icons/react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import CandidateCard from '@/components/CandidateCard';
 import AddCandidateDialog from '@/components/AddCandidateDialog';
 import EditCandidateDialog from '@/components/EditCandidateDialog';
 import FollowUpDialog from '@/components/FollowUpDialog';
+import { ROLE_CATEGORIES } from '@/constants/roleCategories';
 import { API } from '@/config';
 import axios from 'axios';
 
@@ -66,19 +67,24 @@ export default function DashboardPipeline() {
         fetchCandidates();
     };
 
-    // Extract unique roles for the filter dropdown
-    const uniqueRoles = useMemo(() => {
-        const roles = [...new Set(candidates.map(c => c.role).filter(Boolean))].sort();
-        return roles;
-    }, [candidates]);
+    // Extract unique roles for the filter dropdown — combines the predefined
+    // category list with any legacy free-text roles already on candidates so
+    // older records stay filterable.
+    const uniqueRoles = (() => {
+        const legacyRoles = candidates.map(c => c.role).filter(Boolean);
+        const merged = Array.from(new Set([...ROLE_CATEGORIES, ...legacyRoles]));
+        return merged.sort((a, b) => a.localeCompare(b));
+    })();
 
     const hasActiveFilters = roleFilter !== 'all' || warmthFilter !== 'all' || search.length > 0;
 
     const filtered = candidates.filter(c => {
-        const matchesSearch = !search ||
-            c.name.toLowerCase().includes(search.toLowerCase()) ||
-            c.role.toLowerCase().includes(search.toLowerCase()) ||
-            c.email.toLowerCase().includes(search.toLowerCase());
+        const q = search.toLowerCase();
+        const matchesSearch = !q ||
+            c.name.toLowerCase().includes(q) ||
+            (c.role || '').toLowerCase().includes(q) ||
+            (c.email || '').toLowerCase().includes(q) ||
+            (c.notes || '').toLowerCase().includes(q);
         const matchesRole = roleFilter === 'all' || c.role === roleFilter;
         const matchesWarmth = warmthFilter === 'all' || c.warmth === warmthFilter;
         return matchesSearch && matchesRole && matchesWarmth;
@@ -118,7 +124,7 @@ export default function DashboardPipeline() {
                     <Input
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search by name, role, or email..."
+                        placeholder="Search name, role, email, or notes..."
                         className="pl-11 h-11 bg-surface-card border-[#2A2E39] text-[#F1F3F5] placeholder:text-[#6E7781] rounded-xl focus:border-ocean"
                         data-testid="pipeline-search-input"
                     />

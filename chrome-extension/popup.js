@@ -138,7 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function fillForm(data) {
     candName.value = data.name || "";
     candEmail.value = data.email || "";
-    candRole.value = data.role || "";
+    // Role is now a fixed category dropdown — user must pick one manually
+    // (the scraped free-text role is ignored intentionally).
+    candRole.value = "";
     candGroup.value = "pipeline"; // Default group
     candPhone.value = data.phone || "";
     candNotes.value = data.notes || "";
@@ -148,9 +150,14 @@ document.addEventListener("DOMContentLoaded", () => {
   pushBtn.addEventListener("click", async () => {
     const name = candName.value.trim();
     const email = candEmail.value.trim();
+    const role = candRole.value.trim();
 
-    if (!name || !email) {
-      showStatus(pushStatus, "Name and email are required", "error");
+    if (!name) {
+      showStatus(pushStatus, "Name is required", "error");
+      return;
+    }
+    if (!role) {
+      showStatus(pushStatus, "Please pick a role category", "error");
       return;
     }
 
@@ -172,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const payload = {
         name: name,
         email: email,
-        role: candRole.value.trim(),
+        role: role,
         phone: candPhone.value.trim(),
         stage: candGroup.value,
         notes: candNotes.value.trim(),

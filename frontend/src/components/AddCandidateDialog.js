@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { ROLE_CATEGORIES } from '@/constants/roleCategories';
 import { API } from '@/config';
 import axios from 'axios';
 
@@ -84,15 +85,17 @@ export default function AddCandidateDialog({ open, onOpenChange, onCandidateAdde
                         </div>
                     </div>
                     <div>
-                        <Label className="text-[#A0AAB2] text-sm">Role Applied For *</Label>
-                        <Input
-                            value={form.role}
-                            onChange={(e) => setForm({ ...form, role: e.target.value })}
-                            className="mt-1.5 bg-surface-base border-[#2A2E39] text-[#F1F3F5] placeholder:text-[#6E7781] rounded-lg focus:border-ocean"
-                            placeholder="Senior Frontend Developer"
-                            data-testid="add-candidate-role"
-                            required
-                        />
+                        <Label className="text-[#A0AAB2] text-sm">Role Category *</Label>
+                        <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                            <SelectTrigger className="mt-1.5 bg-surface-base border-[#2A2E39] text-[#F1F3F5] rounded-lg focus:border-ocean" data-testid="add-candidate-role">
+                                <SelectValue placeholder="Select a role category" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5] max-h-72">
+                                {ROLE_CATEGORIES.map((r) => (
+                                    <SelectItem key={r} value={r} className="focus:bg-white/5 focus:text-[#F1F3F5]">{r}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>

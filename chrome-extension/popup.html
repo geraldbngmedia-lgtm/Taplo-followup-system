@@ -77,8 +77,23 @@
           <input type="email" id="candEmail" placeholder="candidate@email.com" />
         </div>
         <div class="field">
-          <label>Role</label>
-          <input type="text" id="candRole" placeholder="e.g. Senior Frontend Developer" />
+          <label>Role Category <span class="required">*</span></label>
+          <select id="candRole">
+            <option value="">Select a role category</option>
+            <option value="Backend Developer">Backend Developer</option>
+            <option value="Frontend Developer">Frontend Developer</option>
+            <option value="Fullstack Developer">Fullstack Developer</option>
+            <option value="Architect">Architect</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="DevOps">DevOps</option>
+            <option value="Data">Data</option>
+            <option value="Automation">Automation</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Sales">Sales</option>
+            <option value="Manager">Manager</option>
+            <option value="Project Leader/Manager">Project Leader/Manager</option>
+            <option value="Economic">Economic</option>
+          </select>
         </div>
         <div class="row">
           <div class="field flex-1">
