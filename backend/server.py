@@ -564,8 +564,13 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
     user_id = setting["user_id"]
     email = data.email.lower().strip()
 
-    # Check duplicate by email for this user
-    existing = await db.candidates.find_one({"created_by": user_id, "email": email})
+    # Check duplicate by email for this user — only when email is provided.
+    # LinkedIn and some other sources don't expose email, so empty-email pushes
+    # must always be inserted as new candidates (otherwise every email-less
+    # push would collide with the first empty-email record).
+    existing = None
+    if email:
+        existing = await db.candidates.find_one({"created_by": user_id, "email": email})
     if existing:
         # Update existing candidate with fresh data
         update_fields = {}

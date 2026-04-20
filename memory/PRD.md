@@ -52,6 +52,9 @@
   - TT badge on imported candidate cards
   - "Import from TT" button on Pipeline page (when connected)
 
+## Bug Fixes
+- [x] **LinkedIn empty-email duplication bug** (2026-04-20) — `POST /api/extension/push-candidate` now skips the email dedup check when the incoming email is blank. Previously every LinkedIn push (no email exposed) matched the first empty-email candidate and overwrote it. Candidates with email are still deduped per-user as before. Verified with backend curl tests.
+
 ## Prioritized Backlog
 ### P0 (Next)
 - Gmail/Outlook integration for actual email sending
