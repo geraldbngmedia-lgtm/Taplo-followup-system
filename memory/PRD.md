@@ -63,6 +63,19 @@
 - Pipeline search now also matches `notes` content (so searching "Python" surfaces candidates whose notes contain programming languages). Placeholder updated to "Search name, role, email, or notes…".
 - Shared constant at `frontend/src/constants/roleCategories.js`.
 
+## Feature: Team Members / Workspaces (2026-05-03)
+- Email-invite team flow powered by Resend. Owner sends invite → recipient clicks link → sets name+password → joins workspace as `member`.
+- Roles: `owner` (creator of the workspace) + `member`. Single-tier permissions.
+- Candidates are now scoped to a `workspace_id`. All workspace members see the full pool. Edit/Delete is restricted to the original creator (HTTP 403 otherwise).
+- Each teammate has their own Chrome Extension key; pushes go into the shared workspace pool with `created_by`/`created_by_name`.
+- Only the owner can invite, resend, cancel, or remove teammates. Owner cannot remove themselves or another owner.
+- Backend changes: `users.workspace_id` + `users.team_role`, `candidates.workspace_id` + `candidates.created_by_name`, new `invitations` collection. Startup migration backfills legacy users (workspace_id = own _id, team_role = "owner") and legacy candidates (workspace_id from creator).
+- `/auth/me`, `/auth/login`, `/auth/register` now return `team_role` and `workspace_id`.
+- New endpoints: `GET/POST /api/team/members|invite|invitations`, `POST/DELETE /api/team/invitations/{id}/resend|delete`, `DELETE /api/team/members/{id}`, public `GET/POST /api/invitations/{token}|/accept`.
+- Frontend: new `/dashboard/team` page (owner sees invite form + pending invites + remove member; member sees roster only) and public `/invite/:token` accept page. CandidateCard hides Edit/Delete and shows "by {teammate name}" for cards that aren't yours.
+- Auth precedence reversed: `Authorization: Bearer` now wins over the access_token cookie (avoids stale-cookie identity confusion).
+- Tests: `/app/backend/tests/test_team_workspace.py` — 28/28 passing.
+
 ## Prioritized Backlog
 ### P0 (Next)
 - Gmail/Outlook integration for actual email sending

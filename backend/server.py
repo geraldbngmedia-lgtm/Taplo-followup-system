@@ -50,11 +50,11 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 
 async def get_current_user(request: Request) -> dict:
-    token = request.cookies.get("access_token")
+    # Prefer Bearer token (explicit, used by SPA + extension); fall back to cookie
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header[7:] if auth_header.startswith("Bearer ") else None
     if not token:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
+        token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     try:
@@ -831,10 +831,18 @@ def _origin_from_request(request: Request) -> str:
         try:
             from urllib.parse import urlparse
             p = urlparse(origin)
-            return f"{p.scheme}://{p.netloc}"
+            if p.scheme and p.netloc:
+                return f"{p.scheme}://{p.netloc}"
         except Exception:
-            return origin.rstrip("/")
-    return os.environ.get("FRONTEND_URL", "").rstrip("/")
+            pass
+        return origin.rstrip("/")
+    env_url = os.environ.get("FRONTEND_URL", "").rstrip("/")
+    if env_url:
+        return env_url
+    # Last resort: use the backend's own base URL — works because the SPA is served
+    # from the same origin in this deployment.
+    base = str(request.base_url).rstrip("/")
+    return base
 
 
 @api_router.get("/team/members")
