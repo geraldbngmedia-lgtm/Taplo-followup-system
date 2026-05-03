@@ -66,11 +66,30 @@ async def get_current_user(request: Request) -> dict:
             raise HTTPException(status_code=401, detail="User not found")
         user["_id"] = str(user["_id"])
         user.pop("password_hash", None)
+        # Backfill team fields for legacy users (one-shot, on first call)
+        if not user.get("workspace_id") or not user.get("team_role"):
+            await db.users.update_one(
+                {"_id": ObjectId(user["_id"])},
+                {"$set": {"workspace_id": user["_id"], "team_role": "owner"}},
+            )
+            user["workspace_id"] = user["_id"]
+            user["team_role"] = "owner"
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+async def get_workspace_user_ids(workspace_id: str) -> List[str]:
+    """Return all user_ids belonging to the given workspace."""
+    cursor = db.users.find({"workspace_id": workspace_id}, {"_id": 1})
+    return [str(u["_id"]) async for u in cursor]
+
+
+def require_owner(user: dict):
+    if user.get("team_role") != "owner":
+        raise HTTPException(status_code=403, detail="Only the workspace owner can perform this action")
 
 # ========================
 # Pydantic Models
@@ -137,6 +156,14 @@ class ExtensionPushCandidate(BaseModel):
     tt_profile_url: Optional[str] = None
     followup_date: Optional[str] = None
 
+class TeamInviteInput(BaseModel):
+    email: str
+    message: Optional[str] = ""
+
+class AcceptInviteInput(BaseModel):
+    name: str
+    password: str
+
 # ========================
 # Auth Endpoints
 # ========================
@@ -153,15 +180,18 @@ async def register(data: RegisterInput, response: Response):
         "email": email,
         "password_hash": hashed,
         "role": "recruiter",
+        "team_role": "owner",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     result = await db.users.insert_one(user_doc)
     user_id = str(result.inserted_id)
+    # New self-registered users own a brand-new workspace (workspace_id == their user_id)
+    await db.users.update_one({"_id": result.inserted_id}, {"$set": {"workspace_id": user_id}})
     access_token = create_access_token(user_id, email)
     refresh_token = create_refresh_token(user_id)
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="none", max_age=86400, path="/")
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=True, samesite="none", max_age=604800, path="/")
-    return {"id": user_id, "name": data.name, "email": email, "role": "recruiter", "access_token": access_token, "refresh_token": refresh_token}
+    return {"id": user_id, "name": data.name, "email": email, "role": "recruiter", "team_role": "owner", "workspace_id": user_id, "access_token": access_token, "refresh_token": refresh_token}
 
 @api_router.post("/auth/login")
 async def login(data: LoginInput, response: Response, request: Request):
@@ -170,11 +200,16 @@ async def login(data: LoginInput, response: Response, request: Request):
     if not user or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     user_id = str(user["_id"])
+    # Backfill team fields if missing (legacy users)
+    workspace_id = user.get("workspace_id") or user_id
+    team_role = user.get("team_role") or "owner"
+    if not user.get("workspace_id") or not user.get("team_role"):
+        await db.users.update_one({"_id": user["_id"]}, {"$set": {"workspace_id": workspace_id, "team_role": team_role}})
     access_token = create_access_token(user_id, email)
     refresh_token = create_refresh_token(user_id)
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="none", max_age=86400, path="/")
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=True, samesite="none", max_age=604800, path="/")
-    return {"id": user_id, "name": user["name"], "email": email, "role": user.get("role", "recruiter"), "access_token": access_token, "refresh_token": refresh_token}
+    return {"id": user_id, "name": user["name"], "email": email, "role": user.get("role", "recruiter"), "team_role": team_role, "workspace_id": workspace_id, "access_token": access_token, "refresh_token": refresh_token}
 
 @api_router.post("/auth/logout")
 async def logout(response: Response):
@@ -311,7 +346,7 @@ def calc_next_followup(group: str, last_contact_str: Optional[str]) -> str:
             pass
     return (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
 
-def serialize_candidate(doc: dict) -> dict:
+def serialize_candidate(doc: dict, current_user_id: Optional[str] = None) -> dict:
     doc["id"] = str(doc.pop("_id"))
     doc["warmth"] = calc_warmth(doc.get("last_contact_date"))
     # Use custom follow-up date if set, otherwise calculate from group
@@ -320,6 +355,10 @@ def serialize_candidate(doc: dict) -> dict:
         doc["next_followup"] = custom_fu
     else:
         doc["next_followup"] = calc_next_followup(doc.get("group", "pipeline"), doc.get("last_contact_date"))
+    # Team-aware fields
+    doc["created_by_name"] = doc.get("created_by_name", "")
+    if current_user_id is not None:
+        doc["is_mine"] = doc.get("created_by") == current_user_id
     return doc
 
 @api_router.post("/candidates")
@@ -336,28 +375,44 @@ async def create_candidate(data: CandidateCreate, request: Request):
         "last_contact_date": data.last_contact_date or datetime.now(timezone.utc).isoformat(),
         "last_followed_up": None,
         "created_by": user["_id"],
+        "created_by_name": user.get("name", ""),
+        "workspace_id": user["workspace_id"],
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     result = await db.candidates.insert_one(doc)
     doc["_id"] = result.inserted_id
-    return serialize_candidate(doc)
+    return serialize_candidate(doc, current_user_id=user["_id"])
 
 @api_router.get("/candidates")
 async def list_candidates(request: Request, group: Optional[str] = None):
     user = await get_current_user(request)
-    query = {"created_by": user["_id"], "gdpr_consent": True}
+    workspace_user_ids = await get_workspace_user_ids(user["workspace_id"])
+    query = {
+        "$or": [
+            {"workspace_id": user["workspace_id"]},
+            {"created_by": {"$in": workspace_user_ids}},
+        ],
+        "gdpr_consent": True,
+    }
     if group:
         query["group"] = group
     docs = await db.candidates.find(query).sort("created_at", -1).to_list(500)
-    return [serialize_candidate(d) for d in docs]
+    return [serialize_candidate(d, current_user_id=user["_id"]) for d in docs]
 
 @api_router.get("/candidates/{candidate_id}")
 async def get_candidate(candidate_id: str, request: Request):
     user = await get_current_user(request)
-    doc = await db.candidates.find_one({"_id": ObjectId(candidate_id), "created_by": user["_id"]})
+    workspace_user_ids = await get_workspace_user_ids(user["workspace_id"])
+    doc = await db.candidates.find_one({
+        "_id": ObjectId(candidate_id),
+        "$or": [
+            {"workspace_id": user["workspace_id"]},
+            {"created_by": {"$in": workspace_user_ids}},
+        ],
+    })
     if not doc:
         raise HTTPException(status_code=404, detail="Candidate not found")
-    return serialize_candidate(doc)
+    return serialize_candidate(doc, current_user_id=user["_id"])
 
 @api_router.patch("/candidates/{candidate_id}")
 async def update_candidate(candidate_id: str, data: CandidateUpdate, request: Request):
@@ -365,20 +420,29 @@ async def update_candidate(candidate_id: str, data: CandidateUpdate, request: Re
     update_fields = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_fields:
         raise HTTPException(status_code=400, detail="No fields to update")
+    # Only the original creator can edit
     result = await db.candidates.find_one_and_update(
         {"_id": ObjectId(candidate_id), "created_by": user["_id"]},
         {"$set": update_fields},
         return_document=True
     )
     if not result:
+        # Distinguish between "not in workspace" (404) and "not yours" (403)
+        existing = await db.candidates.find_one({"_id": ObjectId(candidate_id)})
+        if existing and existing.get("workspace_id") == user["workspace_id"]:
+            raise HTTPException(status_code=403, detail="You can only edit candidates you added")
         raise HTTPException(status_code=404, detail="Candidate not found")
-    return serialize_candidate(result)
+    return serialize_candidate(result, current_user_id=user["_id"])
 
 @api_router.delete("/candidates/{candidate_id}")
 async def delete_candidate(candidate_id: str, request: Request):
     user = await get_current_user(request)
+    # Only the original creator can delete
     result = await db.candidates.delete_one({"_id": ObjectId(candidate_id), "created_by": user["_id"]})
     if result.deleted_count == 0:
+        existing = await db.candidates.find_one({"_id": ObjectId(candidate_id)})
+        if existing and existing.get("workspace_id") == user["workspace_id"]:
+            raise HTTPException(status_code=403, detail="You can only delete candidates you added")
         raise HTTPException(status_code=404, detail="Candidate not found")
     return {"message": "Candidate removed"}
 
@@ -389,7 +453,14 @@ async def delete_candidate(candidate_id: str, request: Request):
 @api_router.post("/candidates/{candidate_id}/generate-followup")
 async def generate_followup(candidate_id: str, data: FollowUpRequest, request: Request):
     user = await get_current_user(request)
-    candidate = await db.candidates.find_one({"_id": ObjectId(candidate_id), "created_by": user["_id"]})
+    workspace_user_ids = await get_workspace_user_ids(user["workspace_id"])
+    candidate = await db.candidates.find_one({
+        "_id": ObjectId(candidate_id),
+        "$or": [
+            {"workspace_id": user["workspace_id"]},
+            {"created_by": {"$in": workspace_user_ids}},
+        ],
+    })
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
 
@@ -562,6 +633,10 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
         raise HTTPException(status_code=401, detail="Invalid extension key")
 
     user_id = setting["user_id"]
+    # Resolve workspace + creator name for proper team scoping
+    creator = await db.users.find_one({"_id": ObjectId(user_id)}) if ObjectId.is_valid(user_id) else None
+    workspace_id = (creator.get("workspace_id") if creator else None) or user_id
+    creator_name = creator.get("name", "") if creator else ""
     email = data.email.lower().strip()
 
     # Check duplicate by email for this user — only when email is provided.
@@ -586,7 +661,7 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
 
         await db.extension_settings.update_one({"ext_key": ext_key}, {"$inc": {"push_count": 1}})
         existing = await db.candidates.find_one({"_id": existing["_id"]})
-        return {"status": "updated", "candidate": serialize_candidate(existing)}
+        return {"status": "updated", "candidate": serialize_candidate(existing, current_user_id=user_id)}
 
     # Create new candidate — use stage as group if it's a valid group name
     valid_groups = {"silver_medallist", "not_ready_yet", "pipeline", "offer_declined"}
@@ -603,6 +678,8 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
         "last_followed_up": None,
         "custom_followup_date": data.followup_date or None,
         "created_by": user_id,
+        "created_by_name": creator_name,
+        "workspace_id": workspace_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source": "extension",
         "tt_candidate_id": data.tt_candidate_id,
@@ -615,7 +692,7 @@ async def extension_push_candidate(data: ExtensionPushCandidate, request: Reques
 
     await db.extension_settings.update_one({"ext_key": ext_key}, {"$inc": {"push_count": 1}})
 
-    return {"status": "created", "candidate": serialize_candidate(doc)}
+    return {"status": "created", "candidate": serialize_candidate(doc, current_user_id=user_id)}
 
 @api_router.get("/extension/recent-pushes")
 async def extension_recent_pushes(request: Request):
@@ -691,6 +768,302 @@ Page text:
     except Exception as e:
         logger.error(f"AI extraction error: {e}")
         return {"name": "", "email": "", "phone": "", "error": str(e)}
+
+# ========================
+# Team / Workspace Management
+# ========================
+
+INVITE_EXPIRY_DAYS = 7
+
+
+def build_invite_email_html(workspace_owner_name: str, inviter_name: str, accept_url: str, message: str = "") -> str:
+    custom_block = ""
+    if message:
+        safe_msg = message.replace("<", "&lt;").replace(">", "&gt;")
+        custom_block = f"""
+        <tr><td style="padding:0 24px 16px;">
+            <div style="background:#12151C;border-left:3px solid #4E9BE8;border-radius:6px;padding:14px 16px;color:#A0AAB2;font-size:13px;line-height:1.6;font-style:italic;">{safe_msg}</div>
+        </td></tr>"""
+    return f"""
+    <div style="background:#0A0C10;padding:0;margin:0;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0A0C10;">
+            <tr><td style="padding:32px 24px 24px;">
+                <img src="{LOGO_URL}" alt="Taplo" height="28" style="height:28px;" />
+            </td></tr>
+            <tr><td style="padding:0 24px 8px;">
+                <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 8px;">You're invited to join {workspace_owner_name}'s team on Taplo</h1>
+                <p style="color:#A0AAB2;font-size:14px;line-height:1.6;margin:0;">{inviter_name} invited you to collaborate on their candidate pipeline. Accept the invite to start adding and following up on candidates together.</p>
+            </td></tr>
+            {custom_block}
+            <tr><td style="padding:8px 24px 24px;">
+                <a href="{accept_url}" style="display:inline-block;background:#F97B5C;color:#0A0C10;font-size:14px;font-weight:600;padding:13px 32px;border-radius:999px;text-decoration:none;">Accept invitation</a>
+            </td></tr>
+            <tr><td style="padding:0 24px 24px;">
+                <p style="color:#6E7781;font-size:12px;margin:0;line-height:1.6;">Or paste this link into your browser:<br/><span style="color:#A0AAB2;word-break:break-all;">{accept_url}</span></p>
+            </td></tr>
+            <tr><td style="padding:16px 24px 32px;border-top:1px solid #1A1E27;">
+                <p style="color:#6E7781;font-size:11px;margin:0;text-align:center;">This invitation expires in {INVITE_EXPIRY_DAYS} days.</p>
+            </td></tr>
+        </table>
+    </div>"""
+
+
+async def send_invite_email(to_email: str, workspace_owner_name: str, inviter_name: str, accept_url: str, message: str = "") -> bool:
+    try:
+        params = {
+            "from": f"Taplo <{SENDER_EMAIL}>",
+            "to": [to_email],
+            "subject": f"{inviter_name} invited you to join their team on Taplo",
+            "html": build_invite_email_html(workspace_owner_name, inviter_name, accept_url, message),
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Invite email sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send invite email to {to_email}: {e}")
+        return False
+
+
+def _origin_from_request(request: Request) -> str:
+    origin = request.headers.get("origin") or request.headers.get("referer", "")
+    if origin:
+        # Strip any trailing path from referer
+        try:
+            from urllib.parse import urlparse
+            p = urlparse(origin)
+            return f"{p.scheme}://{p.netloc}"
+        except Exception:
+            return origin.rstrip("/")
+    return os.environ.get("FRONTEND_URL", "").rstrip("/")
+
+
+@api_router.get("/team/members")
+async def list_team_members(request: Request):
+    """List all members of the current user's workspace."""
+    user = await get_current_user(request)
+    members = await db.users.find({"workspace_id": user["workspace_id"]}, {"password_hash": 0}).to_list(200)
+    out = []
+    for m in members:
+        out.append({
+            "id": str(m["_id"]),
+            "name": m.get("name", ""),
+            "email": m.get("email", ""),
+            "team_role": m.get("team_role", "member"),
+            "created_at": m.get("created_at"),
+            "is_self": str(m["_id"]) == user["_id"],
+        })
+    out.sort(key=lambda x: (0 if x["team_role"] == "owner" else 1, x["created_at"] or ""))
+    return {"members": out, "current_user_role": user.get("team_role", "member")}
+
+
+@api_router.post("/team/invite")
+async def invite_teammate(data: TeamInviteInput, request: Request):
+    """Owner-only: send an email invitation to a new teammate."""
+    user = await get_current_user(request)
+    require_owner(user)
+    email = data.email.lower().strip()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="A valid email is required")
+
+    # Reject if user already exists in any workspace
+    existing_user = await db.users.find_one({"email": email})
+    if existing_user:
+        if existing_user.get("workspace_id") == user["workspace_id"]:
+            raise HTTPException(status_code=400, detail="That person is already on your team")
+        raise HTTPException(status_code=400, detail="That email is already registered with another account")
+
+    # Reject if a pending invite already exists for this workspace + email
+    pending = await db.invitations.find_one({"workspace_id": user["workspace_id"], "email": email, "status": "pending"})
+    if pending:
+        raise HTTPException(status_code=400, detail="An invitation is already pending for that email")
+
+    token = secrets.token_urlsafe(32)
+    now = datetime.now(timezone.utc)
+    invite_doc = {
+        "workspace_id": user["workspace_id"],
+        "email": email,
+        "token": token,
+        "message": (data.message or "").strip()[:500],
+        "invited_by_id": user["_id"],
+        "invited_by_name": user.get("name", ""),
+        "status": "pending",
+        "created_at": now.isoformat(),
+        "expires_at": (now + timedelta(days=INVITE_EXPIRY_DAYS)).isoformat(),
+    }
+    result = await db.invitations.insert_one(invite_doc)
+    invite_doc["_id"] = result.inserted_id
+
+    accept_url = f"{_origin_from_request(request)}/invite/{token}"
+    await send_invite_email(
+        to_email=email,
+        workspace_owner_name=user.get("name", "your teammate"),
+        inviter_name=user.get("name", ""),
+        accept_url=accept_url,
+        message=invite_doc["message"],
+    )
+
+    return {
+        "id": str(invite_doc["_id"]),
+        "email": email,
+        "status": "pending",
+        "expires_at": invite_doc["expires_at"],
+        "accept_url": accept_url,
+    }
+
+
+@api_router.get("/team/invitations")
+async def list_invitations(request: Request):
+    """List pending invitations for the current workspace (owner only)."""
+    user = await get_current_user(request)
+    require_owner(user)
+    invites = await db.invitations.find({"workspace_id": user["workspace_id"], "status": "pending"}).sort("created_at", -1).to_list(200)
+    out = []
+    for inv in invites:
+        out.append({
+            "id": str(inv["_id"]),
+            "email": inv.get("email", ""),
+            "status": inv.get("status", "pending"),
+            "created_at": inv.get("created_at"),
+            "expires_at": inv.get("expires_at"),
+            "invited_by_name": inv.get("invited_by_name", ""),
+        })
+    return out
+
+
+@api_router.post("/team/invitations/{invite_id}/resend")
+async def resend_invitation(invite_id: str, request: Request):
+    user = await get_current_user(request)
+    require_owner(user)
+    inv = await db.invitations.find_one({"_id": ObjectId(invite_id), "workspace_id": user["workspace_id"]})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    if inv.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Only pending invites can be resent")
+    accept_url = f"{_origin_from_request(request)}/invite/{inv['token']}"
+    ok = await send_invite_email(
+        to_email=inv["email"],
+        workspace_owner_name=user.get("name", "your teammate"),
+        inviter_name=user.get("name", ""),
+        accept_url=accept_url,
+        message=inv.get("message", ""),
+    )
+    return {"resent": ok}
+
+
+@api_router.delete("/team/invitations/{invite_id}")
+async def cancel_invitation(invite_id: str, request: Request):
+    user = await get_current_user(request)
+    require_owner(user)
+    result = await db.invitations.delete_one({"_id": ObjectId(invite_id), "workspace_id": user["workspace_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    return {"message": "Invitation cancelled"}
+
+
+@api_router.delete("/team/members/{user_id}")
+async def remove_member(user_id: str, request: Request):
+    """Owner-only: remove a member from the workspace. Their candidates remain readable by the team."""
+    user = await get_current_user(request)
+    require_owner(user)
+    if user_id == user["_id"]:
+        raise HTTPException(status_code=400, detail="You can't remove yourself. Transfer ownership first or delete your account.")
+    target = await db.users.find_one({"_id": ObjectId(user_id), "workspace_id": user["workspace_id"]})
+    if not target:
+        raise HTTPException(status_code=404, detail="Member not found in your workspace")
+    if target.get("team_role") == "owner":
+        raise HTTPException(status_code=400, detail="The workspace owner cannot be removed")
+    # Delete the user account; their candidates remain in the workspace (visible & read-only).
+    await db.users.delete_one({"_id": ObjectId(user_id)})
+    await db.extension_settings.delete_many({"user_id": user_id})
+    return {"message": "Member removed"}
+
+
+@api_router.get("/invitations/{token}")
+async def get_invitation_public(token: str):
+    """Public endpoint — fetch invitation details for the accept page."""
+    inv = await db.invitations.find_one({"token": token})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invitation not found or already used")
+    if inv.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="This invitation has already been accepted or cancelled")
+    # Check expiry
+    try:
+        expires = datetime.fromisoformat(inv["expires_at"].replace("Z", "+00:00"))
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires:
+            raise HTTPException(status_code=400, detail="This invitation has expired")
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+    # Look up workspace owner name
+    owner = await db.users.find_one({"workspace_id": inv["workspace_id"], "team_role": "owner"})
+    return {
+        "email": inv.get("email", ""),
+        "invited_by_name": inv.get("invited_by_name", ""),
+        "workspace_owner_name": owner.get("name", "") if owner else inv.get("invited_by_name", ""),
+        "message": inv.get("message", ""),
+    }
+
+
+@api_router.post("/invitations/{token}/accept")
+async def accept_invitation_public(token: str, data: AcceptInviteInput, response: Response):
+    """Public endpoint — accept an invitation by setting name + password.
+    Creates a new member user inside the inviter's workspace."""
+    inv = await db.invitations.find_one({"token": token})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invitation not found or already used")
+    if inv.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="This invitation has already been accepted or cancelled")
+    try:
+        expires = datetime.fromisoformat(inv["expires_at"].replace("Z", "+00:00"))
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires:
+            raise HTTPException(status_code=400, detail="This invitation has expired")
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+    if len(data.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if not data.name.strip():
+        raise HTTPException(status_code=400, detail="Name is required")
+    email = inv["email"]
+    # Belt-and-suspenders: ensure user doesn't already exist
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="An account with this email already exists. Please log in instead.")
+    user_doc = {
+        "name": data.name.strip(),
+        "email": email,
+        "password_hash": hash_password(data.password),
+        "role": "recruiter",
+        "team_role": "member",
+        "workspace_id": inv["workspace_id"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    result = await db.users.insert_one(user_doc)
+    user_id = str(result.inserted_id)
+    # Mark the invitation as accepted
+    await db.invitations.update_one(
+        {"_id": inv["_id"]},
+        {"$set": {"status": "accepted", "accepted_at": datetime.now(timezone.utc).isoformat(), "accepted_user_id": user_id}},
+    )
+    access_token = create_access_token(user_id, email)
+    refresh_token = create_refresh_token(user_id)
+    return {
+        "id": user_id,
+        "name": data.name.strip(),
+        "email": email,
+        "role": "recruiter",
+        "team_role": "member",
+        "workspace_id": inv["workspace_id"],
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+    }
+
 
 # ========================
 # Daily Digest Email
@@ -901,18 +1274,47 @@ logger = logging.getLogger(__name__)
 async def startup():
     await db.users.create_index("email", unique=True)
     await db.waitlist.create_index("email", unique=True)
+    await db.invitations.create_index("token", unique=True)
+    await db.invitations.create_index([("workspace_id", 1), ("status", 1)])
+    # Backfill team fields for legacy users (workspace_id == own _id, team_role == "owner")
+    legacy_users = db.users.find({"$or": [{"workspace_id": {"$exists": False}}, {"team_role": {"$exists": False}}]})
+    async for u in legacy_users:
+        uid = str(u["_id"])
+        await db.users.update_one(
+            {"_id": u["_id"]},
+            {"$set": {
+                "workspace_id": u.get("workspace_id") or uid,
+                "team_role": u.get("team_role") or "owner",
+            }},
+        )
+    # Backfill candidates with workspace_id (looked up from creator's workspace)
+    legacy_candidates = db.candidates.find({"workspace_id": {"$exists": False}})
+    async for c in legacy_candidates:
+        creator_id = c.get("created_by")
+        ws = creator_id  # default: workspace_id == creator user_id
+        try:
+            if creator_id and ObjectId.is_valid(creator_id):
+                creator = await db.users.find_one({"_id": ObjectId(creator_id)})
+                if creator:
+                    ws = creator.get("workspace_id") or creator_id
+        except Exception:
+            pass
+        await db.candidates.update_one({"_id": c["_id"]}, {"$set": {"workspace_id": ws}})
     # Seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@taplo.io")
     admin_password = os.environ.get("ADMIN_PASSWORD", "TaploAdmin2026!")
     existing = await db.users.find_one({"email": admin_email})
     if existing is None:
-        await db.users.insert_one({
+        admin_doc = {
             "email": admin_email,
             "password_hash": hash_password(admin_password),
             "name": "Admin",
             "role": "admin",
+            "team_role": "owner",
             "created_at": datetime.now(timezone.utc).isoformat()
-        })
+        }
+        result = await db.users.insert_one(admin_doc)
+        await db.users.update_one({"_id": result.inserted_id}, {"$set": {"workspace_id": str(result.inserted_id)}})
         logger.info(f"Admin user seeded: {admin_email}")
     elif not verify_password(admin_password, existing["password_hash"]):
         await db.users.update_one({"email": admin_email}, {"$set": {"password_hash": hash_password(admin_password)}})

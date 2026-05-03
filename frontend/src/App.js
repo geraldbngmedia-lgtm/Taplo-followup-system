@@ -1,6 +1,7 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
@@ -9,6 +10,8 @@ import DigestPage from "@/pages/DigestPage";
 import StatsPage from "@/pages/StatsPage";
 import ExtensionPage from "@/pages/ExtensionPage";
 import ProfilePage from "@/pages/ProfilePage";
+import TeamPage from "@/pages/TeamPage";
+import AcceptInvitePage from "@/pages/AcceptInvitePage";
 import Sidebar from "@/components/Sidebar";
 
 function ProtectedRoute() {
@@ -55,14 +58,17 @@ function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
+                <Toaster position="top-right" theme="dark" />
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
                     <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+                    <Route path="/invite/:token" element={<AcceptInvitePage />} />
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<DashboardPipeline />} />
                         <Route path="/dashboard/digest" element={<DigestPage />} />
                         <Route path="/dashboard/stats" element={<StatsPage />} />
+                        <Route path="/dashboard/team" element={<TeamPage />} />
                         <Route path="/dashboard/extension" element={<ExtensionPage />} />
                         <Route path="/dashboard/profile" element={<ProfilePage />} />
                     </Route>

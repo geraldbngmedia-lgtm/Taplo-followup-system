@@ -1,0 +1,49 @@
+{
+  "summary": "Backend-only testing of Taplo Team/Workspace feature. Built comprehensive pytest suite covering auth team fields, invitation CRUD (invite/list/resend/cancel), public invite accept, candidate workspace scoping + permission checks, extension push scoping, and owner guards (remove member, cannot-remove-self, member-cannot-invite). 28/28 tests passing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/* (all authenticated)",
+        "issue": "get_current_user prioritises the 'access_token' httpOnly cookie over the Authorization Bearer header. If any client (or test harness) accidentally has a stale cookie from a previous login, the cookie silently overrides the Bearer token and the request is authenticated as the wrong user. This is non-obvious and caused initial test failures where invite_doc.workspace_id was created against a legacy user (gerald8221) rather than the newly-registered test owner. Suggest reversing priority (Bearer over cookie) or at least mentioning in API docs."
+      },
+      {
+        "endpoint": "PATCH/DELETE /api/candidates/{id}",
+        "issue": "Spec text says detail should mention 'You can only edit/delete candidates you added' but implementation returns two separate strings — 'You can only edit candidates you added' (PATCH) and 'You can only delete candidates you added' (DELETE). Minor wording drift vs. spec; frontend should match accordingly."
+      },
+      {
+        "endpoint": "POST /api/team/invite",
+        "issue": "accept_url is returned as a RELATIVE path ('/invite/<token>') rather than an absolute URL. _origin_from_request apparently returns empty string in this deployment (no X-Forwarded-* headers seen). Works for the frontend (same-origin) but emails built with this URL will have a broken link. Already noted: resend still succeeds because it re-derives origin at send time."
+      }
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_team_workspace.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Consider reversing token resolution in get_current_user() so that an explicit Authorization: Bearer header takes precedence over the 'access_token' cookie — current behaviour is surprising and caused integration confusion during testing.",
+    "Return an absolute accept_url from POST /api/team/invite so email recipients have a clickable link (derive origin from FRONTEND_URL env or request.headers['origin'] fallback).",
+    "Optional: align permission error strings to exactly 'You can only edit/delete candidates you added' as stated in the spec."
+  ],
+  "critical_code_review_comments": [
+    "server.py is 1333 lines — exceeds 700-line threshold; split into modules (auth, team, candidates, extension, digest).",
+    "Backfill for legacy users exists in 3 places (startup migration, get_current_user, login) — DRY violation. Consolidate into a single helper.",
+    "get_current_user prefers cookie over Bearer header; for a SaaS with a Chrome extension and external API clients, Bearer should normally win to avoid accidental identity confusion from browser cookies.",
+    "TeamInviteInput message field appears unvalidated for length (hard-capped at 500 via slicing but not rejected with 400 for oversize).",
+    "remove_member deletes the user account but does not revoke outstanding JWT access tokens — until expiry, a removed member could still make API calls if they kept their token.",
+    "accept_invitation_public does not verify the invited email matches anything the acceptor controls (expected for tokenised flow, but worth double-checking the token entropy — currently 32-byte urlsafe which is OK)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/__init__.py (created)",
+    "/app/backend/tests/test_team_workspace.py (created, 28 tests)"
+  ],
+  "success_rate": {"backend": "100% (28/28)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "Legacy owner: gerald8221@icloud.com / Apple2014ID (exists & backfill verified). Admin: admin@taplo.io / TaploAdmin2026!. Fresh test users are created per-run with random emails (taplo-test-owner-<rand>@example.com / TestPass123!, taplo-test-member2-<rand>@example.com / MemberPass123!).",
+  "seed_data_creation": "Each test run creates ~3-5 fresh owners, ~4-6 member invitations, and several TEST_-prefixed candidates. No teardown implemented (intentional for auditability); cleanup can be done via `db.users.deleteMany({email: /taplo-test-/})` + `db.candidates.deleteMany({name: /^TEST /})` + `db.invitations.deleteMany({email: /taplo-test-|debug-/})`.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Test file /app/backend/tests/test_team_workspace.py uses a _NoCookieSession wrapper to PREVENT requests.Session from persisting the login Set-Cookie — this is critical because backend's get_current_user reads access_token cookie before Authorization header, so a shared requests.Session will cause all authenticated calls after any login to impersonate the most recent login regardless of the Bearer header supplied. Preserve this wrapper pattern in future tests. All 28 tests are idempotent and re-runnable. pytest.invite_id / pytest.invite_token state is carried between tests in TestTeamInvitations — tests within that class must run in order.",
+  "rca of the issue": "No production bug found. Initial 16 test failures + 2 assertions were test-harness issues: (1) shared requests.Session retained the access_token httpOnly cookie from the test_legacy_user_backfilled login, which backend prioritises over the Bearer Authorization header — fix: wrapper that clears cookies around every call. (2) /api/team/invitations returns a bare list, not a dict — fix: tolerant parsing. (3) owner_cannot_remove_self returned 404 instead of 400 because of the same cookie-pollution RCA. (4) generate-followup 422 was a test-payload bug: FollowUpRequest requires candidate_id in body even though it is also a path param."
+}

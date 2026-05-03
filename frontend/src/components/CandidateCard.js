@@ -44,6 +44,9 @@ function safeNextFollowUp(dateStr) {
 export default function CandidateCard({ candidate, index, onFollowUp, onDelete, onEdit }) {
     const c = candidate;
     const isOverdue = c.next_followup && new Date(c.next_followup) <= new Date();
+    // Backend marks records the current user owns. If the field is missing
+    // (legacy responses), fall back to true to preserve previous behaviour.
+    const isMine = c.is_mine !== false;
 
     return (
         <div
@@ -60,22 +63,32 @@ export default function CandidateCard({ candidate, index, onFollowUp, onDelete, 
                         <p className="text-[#6E7781] text-xs truncate">{c.email}</p>
                     </div>
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <button className="p-1 text-[#6E7781] hover:text-[#A0AAB2] hover:bg-white/5 rounded-lg transition-colors" data-testid={`candidate-menu-${c.id}`}>
-                            <DotsThreeVertical weight="bold" className="w-5 h-5" />
-                        </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5]">
-                        <DropdownMenuItem onClick={onEdit} className="focus:bg-white/5 focus:text-[#F1F3F5]" data-testid={`candidate-edit-${c.id}`}>
-                            <PencilSimple className="w-4 h-4 mr-2" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-[#2A2E39]" />
-                        <DropdownMenuItem onClick={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-400/5" data-testid={`candidate-delete-${c.id}`}>
-                            <Trash className="w-4 h-4 mr-2" /> Remove
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                {isMine ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="p-1 text-[#6E7781] hover:text-[#A0AAB2] hover:bg-white/5 rounded-lg transition-colors" data-testid={`candidate-menu-${c.id}`}>
+                                <DotsThreeVertical weight="bold" className="w-5 h-5" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5]">
+                            <DropdownMenuItem onClick={onEdit} className="focus:bg-white/5 focus:text-[#F1F3F5]" data-testid={`candidate-edit-${c.id}`}>
+                                <PencilSimple className="w-4 h-4 mr-2" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-[#2A2E39]" />
+                            <DropdownMenuItem onClick={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-400/5" data-testid={`candidate-delete-${c.id}`}>
+                                <Trash className="w-4 h-4 mr-2" /> Remove
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : (
+                    <span
+                        className="text-[10px] uppercase tracking-wider text-[#6E7781] bg-white/5 px-2 py-0.5 rounded-full whitespace-nowrap"
+                        title={`Added by ${c.created_by_name || 'a teammate'}`}
+                        data-testid={`candidate-by-${c.id}`}
+                    >
+                        by {c.created_by_name || 'teammate'}
+                    </span>
+                )}
             </div>
 
             {/* Info */}

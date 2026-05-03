@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
                 setAxiosToken(data.access_token);
                 if (data.refresh_token) localStorage.setItem('taplo_refresh_token', data.refresh_token);
             }
-            setUser({ id: data.id, name: data.name, email: data.email, role: data.role });
+            setUser({ id: data.id, name: data.name, email: data.email, role: data.role, team_role: data.team_role, workspace_id: data.workspace_id });
             return { success: true };
         } catch (e) {
             return { success: false, error: formatApiErrorDetail(e.response?.data?.detail) || e.message };
@@ -81,11 +81,28 @@ export function AuthProvider({ children }) {
                 setAxiosToken(data.access_token);
                 if (data.refresh_token) localStorage.setItem('taplo_refresh_token', data.refresh_token);
             }
-            setUser({ id: data.id, name: data.name, email: data.email, role: data.role });
+            setUser({ id: data.id, name: data.name, email: data.email, role: data.role, team_role: data.team_role, workspace_id: data.workspace_id });
             return { success: true };
         } catch (e) {
             return { success: false, error: formatApiErrorDetail(e.response?.data?.detail) || e.message };
         }
+    };
+
+    const setAuthFromAccept = (data) => {
+        // Used by the invite-acceptance flow — sets the auth state from a server payload
+        // identical in shape to /auth/login + /auth/me.
+        if (data?.access_token) {
+            setAxiosToken(data.access_token);
+            if (data.refresh_token) localStorage.setItem('taplo_refresh_token', data.refresh_token);
+        }
+        setUser({
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            team_role: data.team_role,
+            workspace_id: data.workspace_id,
+        });
     };
 
     const logout = async () => {
@@ -97,7 +114,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, setAuthFromAccept }}>
             {children}
         </AuthContext.Provider>
     );
