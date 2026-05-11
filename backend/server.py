@@ -788,7 +788,7 @@ def build_invite_email_html(workspace_owner_name: str, inviter_name: str, accept
     <div style="background:#0A0C10;padding:0;margin:0;font-family:'Helvetica Neue',Arial,sans-serif;">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0A0C10;">
             <tr><td style="padding:32px 24px 24px;">
-                <img src="{LOGO_URL}" alt="Taplo" height="28" style="height:28px;" />
+                {WORDMARK_HTML}
             </td></tr>
             <tr><td style="padding:0 24px 8px;">
                 <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 8px;">You're invited to join {workspace_owner_name}'s team on Taplo</h1>
@@ -1079,7 +1079,8 @@ async def accept_invitation_public(token: str, data: AcceptInviteInput, response
 
 resend.api_key = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@taplo.app")
-LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png"
+# Email-safe text wordmark used in place of a hosted logo image.
+WORDMARK_HTML = "<span style=\"font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;color:#F1F3F5;letter-spacing:-0.02em;\">Taplo<span style=\"display:inline-block;width:6px;height:6px;border-radius:50%;background:#F97B5C;margin-left:3px;vertical-align:6px;\"></span></span>"
 
 def build_digest_html(user_name, due_candidates):
     due_rows = ""
@@ -1108,7 +1109,7 @@ def build_digest_html(user_name, due_candidates):
     <div style="background:#0A0C10;padding:0;margin:0;font-family:'Helvetica Neue',Arial,sans-serif;">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0A0C10;">
             <tr><td style="padding:32px 24px 24px;">
-                <img src="{LOGO_URL}" alt="Taplo" height="28" style="height:28px;" />
+                {WORDMARK_HTML}
             </td></tr>
             <tr><td style="padding:0 24px 24px;">
                 <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 6px;">Good morning, {user_name}</h1>

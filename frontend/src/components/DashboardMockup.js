@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { PaperPlaneTilt, Briefcase, CalendarDot, Users, CalendarDots, ChartBar, MagnifyingGlass, Plus, Lightning, CursorClick } from '@phosphor-icons/react';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
-
 const candidates = [
     { name: 'Sarah Chen', role: 'Senior Product Designer', group: 'silver_medallist', warmth: 'hot', lastContact: '2d ago', nextFu: 'Apr 21' },
     { name: 'James Okonkwo', role: 'Full Stack Engineer', group: 'pipeline', warmth: 'warm', lastContact: '5d ago', nextFu: 'Apr 24' },
@@ -159,7 +157,10 @@ export default function DashboardMockup() {
                     {/* Mini sidebar */}
                     <div className="w-[140px] border-r border-[#2A2E39]/60 bg-[#0A0C10] shrink-0 hidden sm:flex flex-col">
                         <div className="p-3 border-b border-[#2A2E39]/60">
-                            <img src={LOGO_URL} alt="Taplo" className="h-4" />
+                            <span className="inline-flex items-baseline gap-0.5">
+                                <span className="font-heading text-sm font-bold text-[#F1F3F5] tracking-tight leading-none">Taplo</span>
+                                <span className="w-1 h-1 rounded-full bg-coral" />
+                            </span>
                         </div>
                         <nav className="p-2 space-y-0.5 flex-1">
                             {[

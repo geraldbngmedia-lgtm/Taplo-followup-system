@@ -2,8 +2,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, CalendarDots, ChartBar, SignOut, House, PuzzlePiece, UserCircle, UsersThree } from '@phosphor-icons/react';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
-
 const navItems = [
     { path: '/dashboard', label: 'Pipeline', icon: Users },
     { path: '/dashboard/digest', label: 'Daily Digest', icon: CalendarDots },
@@ -19,8 +17,9 @@ export default function Sidebar() {
     return (
         <aside className="w-64 border-r border-[#2A2E39] bg-surface-base flex flex-col h-screen fixed left-0 top-0 z-40" data-testid="sidebar">
             <div className="p-6 border-b border-[#2A2E39]">
-                <Link to="/">
-                    <img src={LOGO_URL} alt="Taplo" className="h-7" />
+                <Link to="/" className="inline-flex items-baseline gap-1 group" data-testid="sidebar-wordmark">
+                    <span className="font-heading text-2xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-coral translate-y-[-2px] group-hover:bg-ocean transition-colors" />
                 </Link>
             </div>
 

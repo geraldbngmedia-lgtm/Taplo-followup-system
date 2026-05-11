@@ -7,8 +7,6 @@ import DashboardMockup from '@/components/DashboardMockup';
 import { API } from '@/config';
 import axios from 'axios';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
-
 export default function LandingPage() {
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
@@ -31,7 +29,10 @@ export default function LandingPage() {
             {/* Nav */}
             <nav className="glass-header fixed top-0 left-0 right-0 z-50" data-testid="landing-nav">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
-                    <img src={LOGO_URL} alt="Taplo" className="h-8" data-testid="landing-logo" />
+                    <Link to="/" className="inline-flex items-baseline gap-1 group" data-testid="landing-logo">
+                        <span className="font-heading text-2xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-coral translate-y-[-2px] group-hover:bg-ocean transition-colors" />
+                    </Link>
                     <div className="flex items-center gap-4">
                         <Link to="/login">
                             <Button variant="ghost" className="text-[#A0AAB2] hover:text-[#F1F3F5] hover:bg-white/5 font-body" data-testid="nav-login-button">
@@ -233,7 +234,10 @@ export default function LandingPage() {
             {/* Footer */}
             <footer className="border-t border-white/5 py-12" data-testid="footer">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <img src={LOGO_URL} alt="Taplo" className="h-6 opacity-70" />
+                    <span className="inline-flex items-baseline gap-1 opacity-70">
+                        <span className="font-heading text-xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                        <span className="w-1 h-1 rounded-full bg-coral translate-y-[-2px]" />
+                    </span>
                     <p className="text-[#6E7781] text-sm">&copy; {new Date().getFullYear()} Taplo. All rights reserved.</p>
                     <div className="flex gap-6 text-[#6E7781] text-sm">
                         <span className="hover:text-[#A0AAB2] cursor-pointer transition-colors">Privacy</span>

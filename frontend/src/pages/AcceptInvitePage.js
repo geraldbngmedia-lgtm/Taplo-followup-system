@@ -7,8 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API } from '@/config';
 import axios from 'axios';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
-
 export default function AcceptInvitePage() {
     const { token } = useParams();
     const navigate = useNavigate();
@@ -57,7 +55,10 @@ export default function AcceptInvitePage() {
         <div className="min-h-screen bg-surface-base flex items-center justify-center p-6" data-testid="accept-invite-page">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <Link to="/"><img src={LOGO_URL} alt="Taplo" className="h-8 mx-auto" /></Link>
+                    <Link to="/" className="inline-flex items-baseline gap-1 group" data-testid="invite-wordmark">
+                        <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                        <span className="w-2 h-2 rounded-full bg-coral translate-y-[-3px] group-hover:bg-ocean transition-colors" />
+                    </Link>
                 </div>
                 <div className="bg-surface-card border border-white/5 rounded-2xl p-8">
                     {loading ? (

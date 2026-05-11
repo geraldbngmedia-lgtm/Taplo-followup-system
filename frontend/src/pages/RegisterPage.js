@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_2aa63b04-78ab-456d-9fa0-9e31428b8786/artifacts/bvbae1hz_taplo-logo-inverted-rgb-3000px-w-72ppi.png";
-
 export default function RegisterPage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -36,8 +34,9 @@ export default function RegisterPage() {
     return (
         <div className="min-h-screen bg-surface-base flex items-center justify-center px-6" data-testid="register-page">
             <div className="w-full max-w-sm">
-                <Link to="/" className="block mb-10">
-                    <img src={LOGO_URL} alt="Taplo" className="h-8 mx-auto" />
+                <Link to="/" className="flex items-baseline justify-center gap-1 mb-10 group" data-testid="register-wordmark">
+                    <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                    <span className="w-2 h-2 rounded-full bg-coral translate-y-[-3px] group-hover:bg-ocean transition-colors" />
                 </Link>
                 <div className="bg-surface-card border border-white/5 rounded-2xl p-8">
                     <h1 className="font-heading text-2xl font-bold text-[#F1F3F5] mb-1">Create your account</h1>
