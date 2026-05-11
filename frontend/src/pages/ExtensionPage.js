@@ -74,7 +74,7 @@ export default function ExtensionPage() {
         <div data-testid="extension-page">
             <div className="mb-8">
                 <h1 className="font-heading text-2xl sm:text-3xl font-bold text-[#F1F3F5]">Chrome Extension</h1>
-                <p className="text-[#6E7781] text-sm mt-1">Push candidates from Teamtailor directly into Taplo</p>
+                <p className="text-[#6E7781] text-sm mt-1">Push candidates from Teamtailor directly into A-hub</p>
             </div>
 
             {/* How it Works */}
@@ -85,9 +85,9 @@ export default function ExtensionPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                        { num: '1', icon: Globe, title: 'Install Extension', desc: 'Load the Taplo extension into Chrome via chrome://extensions (Developer mode → Load unpacked)' },
-                        { num: '2', icon: PuzzlePiece, title: 'Click on a Candidate', desc: 'Browse Teamtailor, open a candidate profile, then click the Taplo icon in your toolbar' },
-                        { num: '3', icon: Lightning, title: 'Auto-Scraped & Pushed', desc: 'Taplo captures candidate data from the page and pushes it straight into your pipeline' },
+                        { num: '1', icon: Globe, title: 'Install Extension', desc: 'Load the A-hub extension into Chrome via chrome://extensions (Developer mode → Load unpacked)' },
+                        { num: '2', icon: PuzzlePiece, title: 'Click on a Candidate', desc: 'Browse Teamtailor, open a candidate profile, then click the A-hub icon in your toolbar' },
+                        { num: '3', icon: Lightning, title: 'Auto-Scraped & Pushed', desc: 'A-hub captures candidate data from the page and pushes it straight into your pipeline' },
                     ].map((step) => (
                         <div key={step.num} className="flex gap-4">
                             <span className="text-2xl font-heading font-bold text-white/10 shrink-0">{step.num}</span>

@@ -1,10 +1,10 @@
 /**
- * Taplo Background Service Worker
+ * A-hub Background Service Worker
  * Handles extension installation and badge updates.
  */
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Taplo extension installed");
+  console.log("A-hub extension installed");
 
   // Set default settings
   chrome.storage.local.get(["taplo_api_url", "taplo_ext_key"], (result) => {

@@ -249,7 +249,7 @@ export default function TeamPage() {
                                 onChange={(e) => setInviteMessage(e.target.value)}
                                 rows={3}
                                 maxLength={500}
-                                placeholder="Hey! Joining me on Taplo so we can keep our pipeline warm together."
+                                placeholder="Hey! Joining me on A-hub so we can keep our pipeline warm together."
                                 className="mt-1.5 w-full bg-surface-base border border-[#2A2E39] text-[#F1F3F5] placeholder:text-[#6E7781] rounded-lg p-3 text-sm resize-none focus:border-ocean focus:ring-1 focus:ring-ocean focus:outline-none"
                                 data-testid="team-invite-message"
                             />

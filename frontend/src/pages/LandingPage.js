@@ -30,7 +30,7 @@ export default function LandingPage() {
             <nav className="glass-header fixed top-0 left-0 right-0 z-50" data-testid="landing-nav">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
                     <Link to="/" className="inline-flex items-baseline gap-1 group" data-testid="landing-logo">
-                        <span className="font-heading text-2xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                        <span className="font-heading text-2xl font-bold text-[#F1F3F5] tracking-tight">A-hub</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-coral translate-y-[-2px] group-hover:bg-ocean transition-colors" />
                     </Link>
                     <div className="flex items-center gap-4">
@@ -64,7 +64,7 @@ export default function LandingPage() {
                             <span className="text-coral">candidate</span> again.
                         </h1>
                         <p className="text-base md:text-lg text-[#A0AAB2] leading-relaxed max-w-xl mx-auto mb-10 opacity-0 animate-fade-up stagger-2" data-testid="hero-subheadline">
-                            Taplo keeps your best talent warm automatically. Personalised follow-ups, smart scheduling, and warmth tracking — so recruiters never lose top candidates to silence.
+                            A-hub keeps your best talent warm automatically. Personalised follow-ups, smart scheduling, and warmth tracking — so recruiters never lose top candidates to silence.
                         </p>
 
                         {!submitted ? (
@@ -110,7 +110,7 @@ export default function LandingPage() {
                             Every recruiter knows the feeling. You had an incredible silver medallist, a promising candidate who wasn't quite ready, or someone who declined an offer but might return. Then weeks pass, follow-ups fall through the cracks, and they're gone.
                         </p>
                         <p className="text-[#A0AAB2] text-base leading-relaxed mb-10">
-                            Manual follow-ups don't scale. Spreadsheets get forgotten. Your ATS tracks pipelines, not relationships. Taplo bridges the gap.
+                            Manual follow-ups don't scale. Spreadsheets get forgotten. Your ATS tracks pipelines, not relationships. A-hub bridges the gap.
                         </p>
                         <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
                             {[
@@ -137,8 +137,8 @@ export default function LandingPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { num: "01", title: "Push from Teamtailor", desc: "Browsing a candidate profile in Teamtailor? Click the Taplo Chrome extension to capture their details and push them straight into your pipeline.", icon: Users },
-                            { num: "02", title: "AI Drafts the Message", desc: "When it's time to follow up, Taplo's AI generates a personalised, context-aware email draft. Review it, tweak if needed, and send with one click.", icon: Envelope },
+                            { num: "01", title: "Push from Teamtailor", desc: "Browsing a candidate profile in Teamtailor? Click the A-hub Chrome extension to capture their details and push them straight into your pipeline.", icon: Users },
+                            { num: "02", title: "AI Drafts the Message", desc: "When it's time to follow up, A-hub's AI generates a personalised, context-aware email draft. Review it, tweak if needed, and send with one click.", icon: Envelope },
                             { num: "03", title: "Track & Stay Warm", desc: "Monitor warmth scores, see who's going cold, and get daily digests showing exactly who needs attention today.", icon: ChartLineUp },
                         ].map((step, i) => (
                             <div key={i} className="glass-card rounded-2xl p-8 opacity-0 animate-fade-up" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -235,10 +235,10 @@ export default function LandingPage() {
             <footer className="border-t border-white/5 py-12" data-testid="footer">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
                     <span className="inline-flex items-baseline gap-1 opacity-70">
-                        <span className="font-heading text-xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                        <span className="font-heading text-xl font-bold text-[#F1F3F5] tracking-tight">A-hub</span>
                         <span className="w-1 h-1 rounded-full bg-coral translate-y-[-2px]" />
                     </span>
-                    <p className="text-[#6E7781] text-sm">&copy; {new Date().getFullYear()} Taplo. All rights reserved.</p>
+                    <p className="text-[#6E7781] text-sm">&copy; {new Date().getFullYear()} A-hub. All rights reserved.</p>
                     <div className="flex gap-6 text-[#6E7781] text-sm">
                         <span className="hover:text-[#A0AAB2] cursor-pointer transition-colors">Privacy</span>
                         <span className="hover:text-[#A0AAB2] cursor-pointer transition-colors">Terms</span>

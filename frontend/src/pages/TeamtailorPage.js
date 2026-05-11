@@ -314,7 +314,7 @@ export default function TeamtailorPage() {
                                         data-testid="tt-import-button"
                                     >
                                         <UserPlus className="w-4 h-4 mr-2" />
-                                        Import to Taplo ({selectedIds.size})
+                                        Import to A-hub ({selectedIds.size})
                                     </Button>
                                 </div>
                             )}
@@ -428,7 +428,7 @@ export default function TeamtailorPage() {
                     <DialogHeader>
                         <DialogTitle className="font-heading text-xl">Import {selectedIds.size} Candidate{selectedIds.size !== 1 ? 's' : ''}</DialogTitle>
                         <DialogDescription className="text-[#6E7781]">
-                            Choose how to categorise these candidates in your Taplo pipeline
+                            Choose how to categorise these candidates in your A-hub pipeline
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 mt-2">

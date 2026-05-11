@@ -1,5 +1,5 @@
 """
-Backend tests for Taplo Team / Workspace feature.
+Backend tests for A-hub Team / Workspace feature.
 Covers: team_role/workspace_id on auth, team members/invitations CRUD,
 public invite accept, candidate workspace scoping & permission checks,
 extension push workspace scoping, follow-up generation across team.

@@ -7,11 +7,11 @@ const candidates = [
     { name: 'Emma Lindqvist', role: 'Engineering Manager', group: 'not_ready_yet', warmth: 'cool', lastContact: '12d ago', nextFu: 'Due now' },
 ];
 
-const groupColors = { silver_medallist: 'bg-[#F97B5C]/15 text-[#F97B5C]', pipeline: 'bg-[#4E9BE8]/15 text-[#4E9BE8]', not_ready_yet: 'bg-yellow-400/15 text-yellow-400' };
+const groupColors = { silver_medallist: 'bg-[#8B5CF6]/15 text-[#8B5CF6]', pipeline: 'bg-[#4E9BE8]/15 text-[#4E9BE8]', not_ready_yet: 'bg-yellow-400/15 text-yellow-400' };
 const groupLabels = { silver_medallist: 'Silver Medallist', pipeline: 'Pipeline', not_ready_yet: 'Not Ready Yet' };
-const warmthDot = { hot: 'bg-[#F97B5C] shadow-[0_0_8px_rgba(249,123,92,0.6)]', warm: 'bg-yellow-400 shadow-[0_0_6px_rgba(241,196,15,0.4)]', cool: 'bg-[#4E9BE8] shadow-[0_0_5px_rgba(78,155,232,0.3)]' };
+const warmthDot = { hot: 'bg-[#8B5CF6] shadow-[0_0_8px_rgba(139,92,246,0.6)]', warm: 'bg-yellow-400 shadow-[0_0_6px_rgba(241,196,15,0.4)]', cool: 'bg-[#4E9BE8] shadow-[0_0_5px_rgba(78,155,232,0.3)]' };
 const warmthLabel = { hot: 'Hot', warm: 'Warm', cool: 'Cool' };
-const warmthText = { hot: 'text-[#F97B5C]', warm: 'text-yellow-400', cool: 'text-[#4E9BE8]' };
+const warmthText = { hot: 'text-[#8B5CF6]', warm: 'text-yellow-400', cool: 'text-[#4E9BE8]' };
 
 // Timeline: [x%, y%, duration_ms, action]
 const timeline = [
@@ -139,7 +139,7 @@ export default function DashboardMockup() {
 
     return (
         <div className="relative" data-testid="dashboard-mockup">
-            <div className="absolute -inset-4 bg-gradient-to-br from-[#F97B5C]/8 via-transparent to-[#4E9BE8]/8 rounded-3xl blur-2xl pointer-events-none" />
+            <div className="absolute -inset-4 bg-gradient-to-br from-[#8B5CF6]/8 via-transparent to-[#4E9BE8]/8 rounded-3xl blur-2xl pointer-events-none" />
 
             <div className="relative rounded-2xl border border-white/10 overflow-hidden bg-[#0A0C10] shadow-2xl shadow-black/50">
                 {/* Window chrome */}
@@ -158,7 +158,7 @@ export default function DashboardMockup() {
                     <div className="w-[140px] border-r border-[#2A2E39]/60 bg-[#0A0C10] shrink-0 hidden sm:flex flex-col">
                         <div className="p-3 border-b border-[#2A2E39]/60">
                             <span className="inline-flex items-baseline gap-0.5">
-                                <span className="font-heading text-sm font-bold text-[#F1F3F5] tracking-tight leading-none">Taplo</span>
+                                <span className="font-heading text-sm font-bold text-[#F1F3F5] tracking-tight leading-none">A-hub</span>
                                 <span className="w-1 h-1 rounded-full bg-coral" />
                             </span>
                         </div>
@@ -168,7 +168,7 @@ export default function DashboardMockup() {
                                 { icon: CalendarDots, label: 'Digest', active: false },
                                 { icon: ChartBar, label: 'Stats', active: false },
                             ].map((n) => (
-                                <div key={n.label} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[10px] font-medium transition-colors duration-200 ${n.active ? 'bg-[#F97B5C]/10 text-[#F97B5C]' : 'text-[#6E7781]'}`}>
+                                <div key={n.label} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[10px] font-medium transition-colors duration-200 ${n.active ? 'bg-[#8B5CF6]/10 text-[#8B5CF6]' : 'text-[#6E7781]'}`}>
                                     <n.icon weight={n.active ? 'fill' : 'regular'} className="w-3.5 h-3.5" />
                                     {n.label}
                                 </div>
@@ -197,7 +197,7 @@ export default function DashboardMockup() {
                                             <MagnifyingGlass className="w-2.5 h-2.5 text-[#6E7781]" />
                                             <span className="text-[#6E7781] text-[9px]">Search...</span>
                                         </div>
-                                        <div className="bg-[#F97B5C] text-[#0A0C10] text-[9px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        <div className="bg-[#8B5CF6] text-[#0A0C10] text-[9px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
                                             <Plus weight="bold" className="w-2.5 h-2.5" /> Add
                                         </div>
                                     </div>
@@ -206,7 +206,7 @@ export default function DashboardMockup() {
                                 {/* Tabs */}
                                 <div className="flex gap-0.5 mb-3 bg-[#12151C] p-0.5 rounded-md w-fit">
                                     {tabs.map((t, i) => (
-                                        <span key={t} className={`px-2 py-1 rounded text-[9px] font-medium transition-all duration-300 ${activeTab === i ? 'bg-[#F97B5C]/10 text-[#F97B5C]' : 'text-[#6E7781]'}`}>
+                                        <span key={t} className={`px-2 py-1 rounded text-[9px] font-medium transition-all duration-300 ${activeTab === i ? 'bg-[#8B5CF6]/10 text-[#8B5CF6]' : 'text-[#6E7781]'}`}>
                                             {t}{i === 0 && <span className="ml-1 text-[8px] opacity-60">12</span>}
                                         </span>
                                     ))}
@@ -215,7 +215,7 @@ export default function DashboardMockup() {
                                 {/* Cards */}
                                 <div className={`grid gap-2 ${filteredCandidates.length === 1 ? 'grid-cols-1 max-w-[250px]' : filteredCandidates.length === 2 ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
                                     {filteredCandidates.map((c, i) => (
-                                        <div key={c.name} className={`bg-[#12151C] border rounded-lg p-3 transition-all duration-300 ${hoveredCard === i ? 'border-[#F97B5C]/30 -translate-y-0.5 shadow-lg shadow-[#F97B5C]/5' : 'border-white/[0.04]'}`}>
+                                        <div key={c.name} className={`bg-[#12151C] border rounded-lg p-3 transition-all duration-300 ${hoveredCard === i ? 'border-[#8B5CF6]/30 -translate-y-0.5 shadow-lg shadow-[#8B5CF6]/5' : 'border-white/[0.04]'}`}>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <span className={`w-2 h-2 rounded-full shrink-0 ${warmthDot[c.warmth]}`} />
                                                 <p className="text-[#F1F3F5] text-[10px] font-semibold font-heading truncate">{c.name}</p>
@@ -232,7 +232,7 @@ export default function DashboardMockup() {
                                                     <span className={`w-1 h-1 rounded-full ${warmthDot[c.warmth]}`} />{warmthLabel[c.warmth]}
                                                 </span>
                                             </div>
-                                            <p className={`text-[8px] mb-2 ${c.nextFu === 'Due now' ? 'text-[#F97B5C] font-medium' : 'text-[#6E7781]'}`}>
+                                            <p className={`text-[8px] mb-2 ${c.nextFu === 'Due now' ? 'text-[#8B5CF6] font-medium' : 'text-[#6E7781]'}`}>
                                                 Next: {c.nextFu}
                                             </p>
                                             <div className={`w-full rounded-full text-[9px] font-medium py-1 flex items-center justify-center gap-1 transition-all duration-200 ${hoveredCard === i ? 'bg-[#4E9BE8]/20 text-[#4E9BE8] border border-[#4E9BE8]/30' : 'bg-[#4E9BE8]/10 text-[#4E9BE8] border border-[#4E9BE8]/15'}`}>
@@ -243,8 +243,8 @@ export default function DashboardMockup() {
                                 </div>
 
                                 {/* AI banner */}
-                                <div className="mt-2 bg-[#F97B5C]/5 border border-[#F97B5C]/10 rounded-lg px-3 py-2 flex items-center gap-2">
-                                    <Lightning weight="fill" className="w-3.5 h-3.5 text-[#F97B5C] shrink-0" />
+                                <div className="mt-2 bg-[#8B5CF6]/5 border border-[#8B5CF6]/10 rounded-lg px-3 py-2 flex items-center gap-2">
+                                    <Lightning weight="fill" className="w-3.5 h-3.5 text-[#8B5CF6] shrink-0" />
                                     <p className="text-[9px] text-[#A0AAB2]"><span className="text-[#F1F3F5] font-medium">AI generated</span> a follow-up draft for Sarah Chen — ready to review</p>
                                 </div>
                             </>
@@ -253,7 +253,7 @@ export default function DashboardMockup() {
                             <div className="animate-fade-in">
                                 <p className="text-[#6E7781] text-[9px] mb-3">&larr; Back to pipeline</p>
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-[#F97B5C] shadow-[0_0_8px_rgba(249,123,92,0.6)]" />
+                                    <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6] shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
                                     <div>
                                         <h3 className="font-heading text-xs font-bold text-[#F1F3F5]">Follow Up with Sarah Chen</h3>
                                         <p className="text-[#6E7781] text-[9px]">AI-generated personalised message</p>
@@ -278,7 +278,7 @@ export default function DashboardMockup() {
                                     <div className="flex-1 border border-[#2A2E39] text-[#A0AAB2] rounded-full text-[9px] font-medium py-1.5 flex items-center justify-center gap-1">
                                         Copy
                                     </div>
-                                    <div className={`flex-1 rounded-full text-[9px] font-medium py-1.5 flex items-center justify-center gap-1 transition-all duration-300 ${sentState ? 'bg-green-500/20 text-green-400 border border-green-500/20' : 'bg-[#F97B5C] text-[#0A0C10]'}`}>
+                                    <div className={`flex-1 rounded-full text-[9px] font-medium py-1.5 flex items-center justify-center gap-1 transition-all duration-300 ${sentState ? 'bg-green-500/20 text-green-400 border border-green-500/20' : 'bg-[#8B5CF6] text-[#0A0C10]'}`}>
                                         <PaperPlaneTilt weight="fill" className="w-2.5 h-2.5" />
                                         {sentState ? 'Email Client Opened!' : 'Open Email Client'}
                                     </div>

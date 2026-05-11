@@ -11,7 +11,7 @@ const groupLabels = {
 };
 
 const groupColors = {
-    silver_medallist: '#F97B5C',
+    silver_medallist: '#8B5CF6',
     not_ready_yet: '#F1C40F',
     pipeline: '#4E9BE8',
     offer_declined: '#6E7781',

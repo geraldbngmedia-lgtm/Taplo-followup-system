@@ -1,5 +1,5 @@
 /**
- * Taplo AI Extension Popup Logic
+ * A-hub AI Extension Popup Logic
  * Sends page text to backend AI for extraction, then fills the form.
  */
 
@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Push to Taplo
+  // Push to A-hub
   pushBtn.addEventListener("click", function() {
     var name = candName.value.trim();
     var email = candEmail.value.trim();
@@ -237,17 +237,17 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(function(data) {
         var action = data.status === "created" ? "added to" : "updated in";
-        showStatus(pushStatus, name + " " + action + " your Taplo pipeline!", "success");
+        showStatus(pushStatus, name + " " + action + " your A-hub pipeline!", "success");
         pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Pushed!';
         setTimeout(function() {
           pushBtn.disabled = false;
-          pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Push to Taplo';
+          pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Push to A-hub';
         }, 3000);
       })
       .catch(function(error) {
         showStatus(pushStatus, "Failed: " + error.message, "error");
         pushBtn.disabled = false;
-        pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Push to Taplo';
+        pushBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Push to A-hub';
       });
     });
   });

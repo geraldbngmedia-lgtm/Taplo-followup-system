@@ -56,7 +56,7 @@ export default function AcceptInvitePage() {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <Link to="/" className="inline-flex items-baseline gap-1 group" data-testid="invite-wordmark">
-                        <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                        <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">A-hub</span>
                         <span className="w-2 h-2 rounded-full bg-coral translate-y-[-3px] group-hover:bg-ocean transition-colors" />
                     </Link>
                 </div>
@@ -78,7 +78,7 @@ export default function AcceptInvitePage() {
                     ) : (
                         <>
                             <h1 className="font-heading text-2xl font-bold text-[#F1F3F5] mb-1">
-                                Join {invite.workspace_owner_name || invite.invited_by_name || 'the team'} on Taplo
+                                Join {invite.workspace_owner_name || invite.invited_by_name || 'the team'} on A-hub
                             </h1>
                             <p className="text-[#A0AAB2] text-sm mb-1">
                                 <span className="text-[#F1F3F5]">{invite.invited_by_name}</span> invited you to collaborate on their candidate pipeline.

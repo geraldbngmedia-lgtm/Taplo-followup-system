@@ -18,10 +18,10 @@ module.exports = {
             },
             colors: {
                 coral: {
-                    DEFAULT: '#F97B5C',
-                    hover: '#E86A4B',
-                    light: '#FCD2C8',
-                    dark: '#C95A3E',
+                    DEFAULT: '#8B5CF6',
+                    hover: '#7C3AED',
+                    light: '#DDD6FE',
+                    dark: '#6D28D9',
                 },
                 ocean: {
                     DEFAULT: '#4E9BE8',

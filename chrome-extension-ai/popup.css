@@ -75,7 +75,7 @@ h3 {
   font-weight: 500;
 }
 .required {
-  color: #F97B5C;
+  color: #8B5CF6;
 }
 .field input,
 .field textarea,
@@ -173,7 +173,7 @@ h3 {
   transition: 0.2s;
 }
 .toggle input:checked + .toggle-slider {
-  background-color: #F97B5C;
+  background-color: #8B5CF6;
 }
 .toggle input:checked + .toggle-slider::before {
   transform: translateX(16px);
@@ -197,7 +197,7 @@ h3 {
   transition: all 0.15s;
 }
 .btn-primary {
-  background: #F97B5C;
+  background: #8B5CF6;
   color: #0A0C10;
 }
 .btn-primary:hover {
@@ -290,7 +290,7 @@ h3 {
 
 /* AI badge */
 .ai-badge {
-  background: linear-gradient(135deg, #F97B5C, #4E9BE8);
+  background: linear-gradient(135deg, #8B5CF6, #4E9BE8);
   color: #0A0C10;
   font-size: 9px;
   font-weight: 700;
@@ -347,7 +347,7 @@ h3 {
   color: #A0AAB2;
 }
 .fu-btn.fu-active {
-  background: #F97B5C;
+  background: #8B5CF6;
   color: #0A0C10;
 }
 .field input[type="date"] {

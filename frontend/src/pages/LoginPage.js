@@ -30,12 +30,12 @@ export default function LoginPage() {
         <div className="min-h-screen bg-surface-base flex items-center justify-center px-6" data-testid="login-page">
             <div className="w-full max-w-sm">
                 <Link to="/" className="flex items-baseline justify-center gap-1 mb-10 group" data-testid="login-wordmark">
-                    <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                    <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">A-hub</span>
                     <span className="w-2 h-2 rounded-full bg-coral translate-y-[-3px] group-hover:bg-ocean transition-colors" />
                 </Link>
                 <div className="bg-surface-card border border-white/5 rounded-2xl p-8">
                     <h1 className="font-heading text-2xl font-bold text-[#F1F3F5] mb-1">Welcome back</h1>
-                    <p className="text-[#6E7781] text-sm mb-6">Sign in to your Taplo account</p>
+                    <p className="text-[#6E7781] text-sm mb-6">Sign in to your A-hub account</p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>

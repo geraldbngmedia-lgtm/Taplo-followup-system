@@ -472,7 +472,7 @@ async def generate_followup(candidate_id: str, data: FollowUpRequest, request: R
     }
     group_label = group_labels.get(candidate["group"], candidate["group"])
 
-    system_prompt = """You are Taplo, an AI recruitment assistant. Your job is to write warm, personalised follow-up emails from a recruiter to a candidate.
+    system_prompt = """You are A-hub, an AI recruitment assistant. Your job is to write warm, personalised follow-up emails from a recruiter to a candidate.
 
 Rules:
 - Keep it friendly, professional, and human
@@ -791,12 +791,12 @@ def build_invite_email_html(workspace_owner_name: str, inviter_name: str, accept
                 {WORDMARK_HTML}
             </td></tr>
             <tr><td style="padding:0 24px 8px;">
-                <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 8px;">You're invited to join {workspace_owner_name}'s team on Taplo</h1>
+                <h1 style="color:#F1F3F5;font-size:22px;font-weight:700;margin:0 0 8px;">You're invited to join {workspace_owner_name}'s team on A-hub</h1>
                 <p style="color:#A0AAB2;font-size:14px;line-height:1.6;margin:0;">{inviter_name} invited you to collaborate on their candidate pipeline. Accept the invite to start adding and following up on candidates together.</p>
             </td></tr>
             {custom_block}
             <tr><td style="padding:8px 24px 24px;">
-                <a href="{accept_url}" style="display:inline-block;background:#F97B5C;color:#0A0C10;font-size:14px;font-weight:600;padding:13px 32px;border-radius:999px;text-decoration:none;">Accept invitation</a>
+                <a href="{accept_url}" style="display:inline-block;background:#8B5CF6;color:#0A0C10;font-size:14px;font-weight:600;padding:13px 32px;border-radius:999px;text-decoration:none;">Accept invitation</a>
             </td></tr>
             <tr><td style="padding:0 24px 24px;">
                 <p style="color:#6E7781;font-size:12px;margin:0;line-height:1.6;">Or paste this link into your browser:<br/><span style="color:#A0AAB2;word-break:break-all;">{accept_url}</span></p>
@@ -811,9 +811,9 @@ def build_invite_email_html(workspace_owner_name: str, inviter_name: str, accept
 async def send_invite_email(to_email: str, workspace_owner_name: str, inviter_name: str, accept_url: str, message: str = "") -> bool:
     try:
         params = {
-            "from": f"Taplo <{SENDER_EMAIL}>",
+            "from": f"A-hub <{SENDER_EMAIL}>",
             "to": [to_email],
-            "subject": f"{inviter_name} invited you to join their team on Taplo",
+            "subject": f"{inviter_name} invited you to join their team on A-hub",
             "html": build_invite_email_html(workspace_owner_name, inviter_name, accept_url, message),
         }
         await asyncio.to_thread(resend.Emails.send, params)
@@ -1080,12 +1080,12 @@ async def accept_invitation_public(token: str, data: AcceptInviteInput, response
 resend.api_key = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@taplo.app")
 # Email-safe text wordmark used in place of a hosted logo image.
-WORDMARK_HTML = "<span style=\"font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;color:#F1F3F5;letter-spacing:-0.02em;\">Taplo<span style=\"display:inline-block;width:6px;height:6px;border-radius:50%;background:#F97B5C;margin-left:3px;vertical-align:6px;\"></span></span>"
+WORDMARK_HTML = "<span style=\"font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;color:#F1F3F5;letter-spacing:-0.02em;\">A-hub<span style=\"display:inline-block;width:6px;height:6px;border-radius:50%;background:#8B5CF6;margin-left:3px;vertical-align:6px;\"></span></span>"
 
 def build_digest_html(user_name, due_candidates):
     due_rows = ""
     for c in due_candidates[:15]:
-        warmth_color = {"hot": "#F97B5C", "warm": "#F1C40F", "cool": "#4E9BE8", "cold": "#6E7781"}.get(c.get("warmth", "cold"), "#6E7781")
+        warmth_color = {"hot": "#8B5CF6", "warm": "#F1C40F", "cool": "#4E9BE8", "cold": "#6E7781"}.get(c.get("warmth", "cold"), "#6E7781")
         role_text = c.get('role', '') or 'No role specified'
         due_rows += f"""
         <tr>
@@ -1119,20 +1119,20 @@ def build_digest_html(user_name, due_candidates):
                 <table width="100%" cellpadding="0" cellspacing="0" style="background:#12151C;border-radius:12px;overflow:hidden;">
                     <tr>
                         <td style="padding:14px 16px;border-bottom:1px solid #1A1E27;">
-                            <span style="color:#F97B5C;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Due for Follow-Up</span>
+                            <span style="color:#8B5CF6;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Due for Follow-Up</span>
                         </td>
                         <td style="padding:14px 16px;border-bottom:1px solid #1A1E27;text-align:right;">
-                            <span style="color:#F97B5C;font-size:12px;font-weight:600;">{count}</span>
+                            <span style="color:#8B5CF6;font-size:12px;font-weight:600;">{count}</span>
                         </td>
                     </tr>
                     {due_rows if due_rows else empty_state}
                 </table>
             </td></tr>
             <tr><td style="padding:0 24px 32px;text-align:center;">
-                <a href="https://taplo.app/dashboard" style="display:inline-block;background:#F97B5C;color:#0A0C10;font-size:14px;font-weight:600;padding:12px 32px;border-radius:999px;text-decoration:none;">Open Dashboard</a>
+                <a href="https://taplo.app/dashboard" style="display:inline-block;background:#8B5CF6;color:#0A0C10;font-size:14px;font-weight:600;padding:12px 32px;border-radius:999px;text-decoration:none;">Open Dashboard</a>
             </td></tr>
             <tr><td style="padding:16px 24px 32px;border-top:1px solid #1A1E27;">
-                <p style="color:#6E7781;font-size:11px;margin:0;text-align:center;">Taplo — Never lose a great candidate again</p>
+                <p style="color:#6E7781;font-size:11px;margin:0;text-align:center;">A-hub — Never lose a great candidate again</p>
             </td></tr>
         </table>
     </div>"""
@@ -1165,11 +1165,11 @@ async def send_digest_to_user(user_doc):
 
     html = build_digest_html(user_doc.get("name", "there"), due)
     count = len(due)
-    subject = f"Taplo: {count} candidate{'s' if count != 1 else ''} due for follow-up" if count > 0 else "Taplo: Your pipeline is warm — no follow-ups due"
+    subject = f"A-hub: {count} candidate{'s' if count != 1 else ''} due for follow-up" if count > 0 else "A-hub: Your pipeline is warm — no follow-ups due"
 
     try:
         params = {
-            "from": f"Taplo <{SENDER_EMAIL}>",
+            "from": f"A-hub <{SENDER_EMAIL}>",
             "to": [user_doc["email"]],
             "subject": subject,
             "html": html,
@@ -1259,7 +1259,7 @@ async def trigger_all_digests(request: Request):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Taplo API is running"}
+    return {"message": "A-hub API is running"}
 
 # ========================
 # App Setup
@@ -1311,7 +1311,7 @@ async def startup():
         await db.candidates.update_one({"_id": c["_id"]}, {"$set": {"workspace_id": ws}})
     # Seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@taplo.io")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "TaploAdmin2026!")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "A-hubAdmin2026!")
     existing = await db.users.find_one({"email": admin_email})
     if existing is None:
         admin_doc = {

@@ -1,6 +1,6 @@
-# Taplo Chrome Extension
+# A-hub Chrome Extension
 
-Push candidates from Teamtailor into your Taplo nurturing pipeline — with one click.
+Push candidates from Teamtailor into your A-hub nurturing pipeline — with one click.
 
 ## Installation
 
@@ -8,29 +8,29 @@ Push candidates from Teamtailor into your Taplo nurturing pipeline — with one 
 2. Enable **Developer mode** (top-right toggle)
 3. Click **Load unpacked**
 4. Select this `chrome-extension` folder
-5. The Taplo icon appears in your toolbar
+5. The A-hub icon appears in your toolbar
 
 ## Setup
 
-1. Click the Taplo extension icon
+1. Click the A-hub extension icon
 2. Click the **gear** icon (top-right)
-3. Enter your **Taplo Backend URL** (e.g. `https://your-app.preview.emergentagent.com`)
-4. Enter your **Extension API Key** (found in Taplo Dashboard → Extension page)
+3. Enter your **A-hub Backend URL** (e.g. `https://your-app.preview.emergentagent.com`)
+4. Enter your **Extension API Key** (found in A-hub Dashboard → Extension page)
 5. Click **Save Settings**
 
 ## Usage
 
 1. Navigate to any **candidate profile** in Teamtailor
-2. Click the **Taplo extension icon** in your browser toolbar
+2. Click the **A-hub extension icon** in your browser toolbar
 3. The extension auto-scrapes the candidate's name, email, role, stage, and tags
 4. Review and edit the captured data if needed
-5. Click **Push to Taplo**
-6. The candidate appears in your Taplo pipeline instantly
+5. Click **Push to A-hub**
+6. The candidate appears in your A-hub pipeline instantly
 
 ## How It Works
 
 - **Content Script** (`content.js`): Runs on `*.teamtailor.com` pages. Uses multiple strategies (DOM selectors, label scanning, regex) to extract candidate data.
-- **Popup** (`popup.html/js/css`): Shows the captured data in an editable form. Sends it to Taplo via `POST /api/extension/push-candidate`.
+- **Popup** (`popup.html/js/css`): Shows the captured data in an editable form. Sends it to A-hub via `POST /api/extension/push-candidate`.
 - **Background** (`background.js`): Handles extension lifecycle.
 
 ## API Endpoint
@@ -48,7 +48,7 @@ Header: X-Extension-Key: {your-extension-key}
 chrome-extension/
 ├── manifest.json      # Extension config (Manifest V3)
 ├── popup.html         # Popup UI
-├── popup.css          # Popup styles (Taplo dark theme)
+├── popup.css          # Popup styles (A-hub dark theme)
 ├── popup.js           # Popup logic
 ├── content.js         # Page scraper for Teamtailor
 ├── background.js      # Service worker

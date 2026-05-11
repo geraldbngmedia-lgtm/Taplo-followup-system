@@ -224,7 +224,7 @@ export default function DashboardPipeline() {
                         ) : filtered.length === 0 && candidates.length === 0 ? (
                             <div className="py-8" data-testid="pipeline-onboarding">
                                 <div className="text-center mb-8">
-                                    <h2 className="font-heading text-xl font-bold text-[#F1F3F5] mb-2">Welcome to Taplo</h2>
+                                    <h2 className="font-heading text-xl font-bold text-[#F1F3F5] mb-2">Welcome to A-hub</h2>
                                     <p className="text-[#6E7781] text-sm">Get started in 3 easy steps</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -233,7 +233,7 @@ export default function DashboardPipeline() {
                                             num: '1',
                                             icon: PuzzlePiece,
                                             title: 'Install the Chrome Extension',
-                                            desc: 'Go to the Extension page to get your API key and set up the Taplo Chrome extension.',
+                                            desc: 'Go to the Extension page to get your API key and set up the A-hub Chrome extension.',
                                             action: <Link to="/dashboard/extension"><Button variant="outline" className="mt-3 border-ocean/30 text-ocean hover:bg-ocean/5 rounded-full text-xs" data-testid="onboarding-extension-btn"><PuzzlePiece className="w-3.5 h-3.5 mr-1.5" /> Set Up Extension</Button></Link>
                                         },
                                         {

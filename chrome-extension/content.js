@@ -1,5 +1,5 @@
 /**
- * Taplo Content Script — runs on Teamtailor & LinkedIn pages.
+ * A-hub Content Script — runs on Teamtailor & LinkedIn pages.
  * Auto-detects platform and scrapes candidate data accordingly.
  */
 

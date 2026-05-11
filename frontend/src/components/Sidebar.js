@@ -18,7 +18,7 @@ export default function Sidebar() {
         <aside className="w-64 border-r border-[#2A2E39] bg-surface-base flex flex-col h-screen fixed left-0 top-0 z-40" data-testid="sidebar">
             <div className="p-6 border-b border-[#2A2E39]">
                 <Link to="/" className="inline-flex items-baseline gap-1 group" data-testid="sidebar-wordmark">
-                    <span className="font-heading text-2xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                    <span className="font-heading text-2xl font-bold text-[#F1F3F5] tracking-tight">A-hub</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-coral translate-y-[-2px] group-hover:bg-ocean transition-colors" />
                 </Link>
             </div>

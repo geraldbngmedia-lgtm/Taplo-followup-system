@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Taplo - Candidate Nurturing",
-  "description": "Push candidates from Teamtailor or LinkedIn into your Taplo pipeline with one click.",
+  "name": "A-hub - Candidate Nurturing",
+  "description": "Push candidates from Teamtailor or LinkedIn into your A-hub pipeline with one click.",
   "version": "1.1.0",
   "permissions": ["activeTab", "storage"],
   "host_permissions": ["https://*.teamtailor.com/*", "https://*.linkedin.com/*", "https://*/*"],

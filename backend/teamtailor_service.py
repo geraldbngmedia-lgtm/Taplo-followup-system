@@ -275,7 +275,7 @@ async def full_sync(db, user_id: str, api_key: str) -> dict:
 
 def map_tt_candidate_to_taplo(tt_candidate: dict, tt_applications: list, tt_jobs: dict, group: str, reason: str) -> dict:
     """
-    Map a raw Teamtailor candidate to a Taplo candidate document.
+    Map a raw Teamtailor candidate to a A-hub candidate document.
     tt_jobs is a dict of {tt_id: job_doc}
     """
     name = f"{tt_candidate.get('first_name', '')} {tt_candidate.get('last_name', '')}".strip()

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Taplo - AI Candidate Nurturing",
-  "description": "Push candidates from any ATS or LinkedIn into your Taplo pipeline with one click. AI-powered extraction.",
+  "name": "A-hub - AI Candidate Nurturing",
+  "description": "Push candidates from any ATS or LinkedIn into your A-hub pipeline with one click. AI-powered extraction.",
   "version": "2.0.0",
   "permissions": ["activeTab", "storage"],
   "host_permissions": ["https://*/*"],

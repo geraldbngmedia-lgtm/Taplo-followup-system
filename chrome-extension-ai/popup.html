@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Taplo</title>
+  <title>A-hub</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="popup.css" />
 </head>
@@ -13,11 +13,11 @@
     <div class="header">
       <div class="header-left">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="2" width="16" height="8" rx="2" fill="#F97B5C"/>
+          <rect x="2" y="2" width="16" height="8" rx="2" fill="#8B5CF6"/>
           <path d="M6 14L2 18V14H6Z" fill="#4E9BE8"/>
           <path d="M6 14H14L10 20H2L6 14Z" fill="#4E9BE8"/>
         </svg>
-        <span class="header-title">Taplo</span>
+        <span class="header-title">A-hub</span>
         <span class="ai-badge">AI</span>
       </div>
       <button id="settingsBtn" class="icon-btn" title="Settings">
@@ -29,9 +29,9 @@
     <div id="settingsPanel" class="panel hidden">
       <h3>Extension Settings</h3>
       <div class="field">
-        <label>Taplo Backend URL</label>
+        <label>A-hub Backend URL</label>
         <input type="url" id="apiUrl" placeholder="https://your-domain.com" />
-        <span class="hint">Your Taplo app URL (without /api)</span>
+        <span class="hint">Your A-hub app URL (without /api)</span>
       </div>
       <div class="field">
         <label>Extension API Key</label>
@@ -50,7 +50,7 @@
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6E7781" stroke-width="1.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </div>
         <p class="empty-title">Not configured</p>
-        <p class="empty-desc">Click the gear icon to add your Taplo URL and extension key.</p>
+        <p class="empty-desc">Click the gear icon to add your A-hub URL and extension key.</p>
       </div>
 
       <!-- Candidate Form -->
@@ -144,7 +144,7 @@
 
         <button id="pushBtn" class="btn btn-primary btn-push">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          Push to Taplo
+          Push to A-hub
         </button>
 
         <div id="pushStatus" class="status hidden"></div>

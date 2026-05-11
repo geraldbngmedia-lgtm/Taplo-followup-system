@@ -11,8 +11,8 @@ const demoCandidates = [
 ];
 
 const groupLabels = { silver_medallist: 'Silver Medallist', not_ready_yet: 'Not Ready Yet', pipeline: 'Pipeline', offer_declined: 'Offer Declined' };
-const groupColors = { silver_medallist: 'bg-[#F97B5C]/10 text-[#F97B5C] border-[#F97B5C]/20', not_ready_yet: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20', pipeline: 'bg-[#4E9BE8]/10 text-[#4E9BE8] border-[#4E9BE8]/20', offer_declined: 'bg-[#6E7781]/10 text-[#A0AAB2] border-[#6E7781]/20' };
-const warmthConfig = { hot: { color: 'bg-[#F97B5C]', glow: 'shadow-[0_0_10px_rgba(249,123,92,0.5)]', label: 'Hot', text: 'text-[#F97B5C]' }, warm: { color: 'bg-yellow-400', glow: 'shadow-[0_0_8px_rgba(241,196,15,0.4)]', label: 'Warm', text: 'text-yellow-400' }, cool: { color: 'bg-[#4E9BE8]', glow: 'shadow-[0_0_6px_rgba(78,155,232,0.3)]', label: 'Cool', text: 'text-[#4E9BE8]' }, cold: { color: 'bg-[#6E7781]', glow: '', label: 'Cold', text: 'text-[#6E7781]' } };
+const groupColors = { silver_medallist: 'bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/20', not_ready_yet: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20', pipeline: 'bg-[#4E9BE8]/10 text-[#4E9BE8] border-[#4E9BE8]/20', offer_declined: 'bg-[#6E7781]/10 text-[#A0AAB2] border-[#6E7781]/20' };
+const warmthConfig = { hot: { color: 'bg-[#8B5CF6]', glow: 'shadow-[0_0_10px_rgba(139,92,246,0.5)]', label: 'Hot', text: 'text-[#8B5CF6]' }, warm: { color: 'bg-yellow-400', glow: 'shadow-[0_0_8px_rgba(241,196,15,0.4)]', label: 'Warm', text: 'text-yellow-400' }, cool: { color: 'bg-[#4E9BE8]', glow: 'shadow-[0_0_6px_rgba(78,155,232,0.3)]', label: 'Cool', text: 'text-[#4E9BE8]' }, cold: { color: 'bg-[#6E7781]', glow: '', label: 'Cold', text: 'text-[#6E7781]' } };
 
 const demoMessage = {
     subject: "Thinking of you — exciting things ahead at Acme",
@@ -98,7 +98,7 @@ export default function LiveDemoSection() {
             <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
                 <div className="text-center mb-12">
                     <p className="text-xs tracking-[0.2em] uppercase font-bold text-ocean mb-4 font-heading">Live Preview</p>
-                    <h2 className="font-heading text-3xl sm:text-4xl tracking-tight font-bold">See Taplo in action</h2>
+                    <h2 className="font-heading text-3xl sm:text-4xl tracking-tight font-bold">See A-hub in action</h2>
                     <p className="text-[#A0AAB2] text-base mt-3 max-w-lg mx-auto">Click around — this is a real interactive preview of the dashboard</p>
                 </div>
 
@@ -109,7 +109,7 @@ export default function LiveDemoSection() {
                         <div className="w-48 border-r border-[#2A2E39] bg-[#0A0C10] flex flex-col shrink-0 hidden md:flex">
                             <div className="p-4 border-b border-[#2A2E39]">
                                 <span className="inline-flex items-baseline gap-0.5">
-                                    <span className="font-heading text-base font-bold text-[#F1F3F5] tracking-tight leading-none">Taplo</span>
+                                    <span className="font-heading text-base font-bold text-[#F1F3F5] tracking-tight leading-none">A-hub</span>
                                     <span className="w-1 h-1 rounded-full bg-coral" />
                                 </span>
                             </div>
@@ -119,7 +119,7 @@ export default function LiveDemoSection() {
                                     { label: 'Daily Digest', icon: CalendarDots, active: false },
                                     { label: 'Stats', icon: ChartBar, active: false },
                                 ].map((item) => (
-                                    <div key={item.label} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${item.active ? 'bg-[#F97B5C]/10 text-[#F97B5C]' : 'text-[#6E7781]'}`}>
+                                    <div key={item.label} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${item.active ? 'bg-[#8B5CF6]/10 text-[#8B5CF6]' : 'text-[#6E7781]'}`}>
                                         <item.icon weight={item.active ? 'fill' : 'regular'} className="w-4 h-4" />
                                         {item.label}
                                     </div>
@@ -143,7 +143,7 @@ export default function LiveDemoSection() {
                                             <h3 className="font-heading text-base font-bold text-[#F1F3F5]">Candidate Pipeline</h3>
                                             <p className="text-[#6E7781] text-[11px]">{filtered.length} candidates being nurtured</p>
                                         </div>
-                                        <button className="bg-[#F97B5C] text-[#0A0C10] text-[11px] font-medium px-3.5 py-1.5 rounded-full hover:bg-[#E86A4B] transition-colors">
+                                        <button className="bg-[#8B5CF6] text-[#0A0C10] text-[11px] font-medium px-3.5 py-1.5 rounded-full hover:bg-[#E86A4B] transition-colors">
                                             + Add Candidate
                                         </button>
                                     </div>
@@ -154,7 +154,7 @@ export default function LiveDemoSection() {
                                             <button
                                                 key={t.value}
                                                 onClick={() => setActiveTab(t.value)}
-                                                className={`px-3 py-1.5 rounded-md text-[11px] font-medium whitespace-nowrap transition-all ${activeTab === t.value ? 'bg-[#F97B5C]/10 text-[#F97B5C]' : 'text-[#6E7781] hover:text-[#A0AAB2]'}`}
+                                                className={`px-3 py-1.5 rounded-md text-[11px] font-medium whitespace-nowrap transition-all ${activeTab === t.value ? 'bg-[#8B5CF6]/10 text-[#8B5CF6]' : 'text-[#6E7781] hover:text-[#A0AAB2]'}`}
                                                 data-testid={`demo-tab-${t.value}`}
                                             >
                                                 {t.label}
@@ -198,7 +198,7 @@ export default function LiveDemoSection() {
                                                             {w.label}
                                                         </span>
                                                     </div>
-                                                    <p className={`text-[10px] mb-3 ${isOverdue ? 'text-[#F97B5C] font-medium' : 'text-[#6E7781]'}`}>
+                                                    <p className={`text-[10px] mb-3 ${isOverdue ? 'text-[#8B5CF6] font-medium' : 'text-[#6E7781]'}`}>
                                                         Next follow-up: {c.nextFollowup}
                                                     </p>
                                                     <button
@@ -269,7 +269,7 @@ export default function LiveDemoSection() {
                                                         {copied ? <><CheckCircle className="w-3 h-3" /> Copied!</> : <><Copy className="w-3 h-3" /> Copy</>}
                                                     </button>
                                                     <button
-                                                        className="flex-1 bg-[#F97B5C] hover:bg-[#E86A4B] text-[#0A0C10] rounded-full text-[11px] font-medium py-2 transition-colors flex items-center justify-center gap-1.5"
+                                                        className="flex-1 bg-[#8B5CF6] hover:bg-[#E86A4B] text-[#0A0C10] rounded-full text-[11px] font-medium py-2 transition-colors flex items-center justify-center gap-1.5"
                                                         data-testid="demo-send-button"
                                                         onClick={handleBack}
                                                     >

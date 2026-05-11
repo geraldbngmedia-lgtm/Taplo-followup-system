@@ -1,5 +1,5 @@
 /**
- * Taplo AI Content Script — runs on any ATS / LinkedIn page.
+ * A-hub AI Content Script — runs on any ATS / LinkedIn page.
  * Grabs the visible page text for AI extraction.
  */
 

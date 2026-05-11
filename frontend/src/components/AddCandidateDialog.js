@@ -53,7 +53,7 @@ export default function AddCandidateDialog({ open, onOpenChange, onCandidateAdde
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="bg-surface-card border-[#2A2E39] text-[#F1F3F5] max-w-lg" data-testid="add-candidate-dialog">
                 <DialogHeader>
-                    <DialogTitle className="font-heading text-xl">Add Candidate to Taplo</DialogTitle>
+                    <DialogTitle className="font-heading text-xl">Add Candidate to A-hub</DialogTitle>
                     <DialogDescription className="text-[#6E7781]">
                         Keep this candidate warm with personalised follow-ups
                     </DialogDescription>

@@ -1,4 +1,4 @@
-/* Taplo Custom Styles */
+/* A-hub Custom Styles */
 
 .glass-header {
     background: rgba(10, 12, 16, 0.7);
@@ -15,7 +15,7 @@
 }
 
 .glow-coral {
-    box-shadow: 0 0 40px rgba(249, 123, 92, 0.15);
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.15);
 }
 
 .glow-ocean {
@@ -23,8 +23,8 @@
 }
 
 .warmth-hot {
-    background: #F97B5C;
-    box-shadow: 0 0 12px rgba(249, 123, 92, 0.6);
+    background: #8B5CF6;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
 }
 
 .warmth-warm {
@@ -73,7 +73,7 @@
 }
 
 .hero-glow-coral {
-    background: #F97B5C;
+    background: #8B5CF6;
     top: -200px;
     right: -100px;
 }

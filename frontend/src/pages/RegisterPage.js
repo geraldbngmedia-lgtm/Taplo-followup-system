@@ -35,7 +35,7 @@ export default function RegisterPage() {
         <div className="min-h-screen bg-surface-base flex items-center justify-center px-6" data-testid="register-page">
             <div className="w-full max-w-sm">
                 <Link to="/" className="flex items-baseline justify-center gap-1 mb-10 group" data-testid="register-wordmark">
-                    <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">Taplo</span>
+                    <span className="font-heading text-3xl font-bold text-[#F1F3F5] tracking-tight">A-hub</span>
                     <span className="w-2 h-2 rounded-full bg-coral translate-y-[-3px] group-hover:bg-ocean transition-colors" />
                 </Link>
                 <div className="bg-surface-card border border-white/5 rounded-2xl p-8">
